@@ -1,0 +1,1080 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CRUMBLE! — Game Design Document v3 (Rarity Power + Merge Edition)</title>
+<style>
+  :root{
+    --bg:#0c0e13; --panel:#151922; --panel2:#1c2230; --line:#2a3242;
+    --text:#e8ecf3; --mute:#9aa5b8; --lava:#ff5a1f; --amber:#ffb020;
+    --gold:#ffd166; --ice:#5cc8ff; --void:#b07cff; --ok:#3ddc97; --bad:#ff4d6d;
+    --c:#c9d1dc; --u:#3ddc97; --r:#4ea8ff; --e:#b07cff; --l:#ffb020; --m:#ff4d6d;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font:15px/1.6 "Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+  .wrap{max-width:1140px;margin:0 auto;padding:0 24px 80px}
+  header.hero{background:radial-gradient(ellipse at 25% 0%,#3d1606 0%,#170b07 45%,var(--bg) 80%);border-bottom:1px solid var(--line);padding:56px 0 40px}
+  .tag{display:inline-block;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--amber);border:1px solid #5a3a0a;padding:3px 10px;border-radius:99px;margin-bottom:14px}
+  h1{font-size:68px;line-height:1;margin:0 0 10px;letter-spacing:-.02em;background:linear-gradient(90deg,var(--gold),var(--lava));-webkit-background-clip:text;background-clip:text;color:transparent;font-weight:900}
+  .sub{font-size:22px;color:#fff;margin:0 0 14px;font-weight:600}
+  .lede{color:var(--mute);max-width:820px}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:20px}
+  .chip{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:6px 12px;font-size:13px}
+  .chip b{color:var(--gold)}
+  nav{position:sticky;top:0;background:rgba(12,14,19,.96);border-bottom:1px solid var(--line);z-index:5}
+  nav .wrap{display:flex;flex-wrap:wrap;gap:4px 14px;padding-top:9px;padding-bottom:9px}
+  nav a{color:var(--mute);text-decoration:none;font-size:12.5px}
+  nav a:hover{color:var(--gold)}
+  section{padding-top:52px}
+  .num{color:var(--lava);font-weight:800;font-size:13px;letter-spacing:.14em}
+  h2{font-size:32px;margin:4px 0 16px;letter-spacing:-.01em}
+  h3{font-size:18px;margin:24px 0 8px;color:var(--gold)}
+  p{margin:8px 0}
+  .grid{display:grid;gap:14px}
+  .g2{grid-template-columns:repeat(auto-fit,minmax(320px,1fr))}
+  .g3{grid-template-columns:repeat(auto-fit,minmax(250px,1fr))}
+  .g4{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px}
+  .card h4{margin:0 0 6px;font-size:16px}
+  .k{font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:var(--mute)}
+  .big{font-size:32px;font-weight:900;color:var(--gold);line-height:1.15}
+  table{width:100%;border-collapse:collapse;margin:10px 0 6px;font-size:13.5px;background:var(--panel);border-radius:10px;overflow:hidden}
+  th,td{padding:8px 10px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}
+  th{background:var(--panel2);color:var(--mute);font-weight:600;font-size:11.5px;text-transform:uppercase;letter-spacing:.06em}
+  tr:last-child td{border-bottom:0}
+  tr.major td{background:#211208}
+  tr.major td:first-child{border-left:3px solid var(--lava)}
+  tr.minor td:first-child{border-left:3px solid var(--ice)}
+  tr.micro td:first-child{border-left:3px solid #3a4456}
+  tr.phase td{background:var(--panel2);color:var(--gold);font-weight:700;text-transform:uppercase;letter-spacing:.08em;font-size:12px}
+  .note{background:#1a1408;border:1px solid #4a360a;border-left:4px solid var(--amber);border-radius:8px;padding:12px 16px;margin:14px 0;color:#f3e4c4}
+  .fix{background:#0c1a14;border:1px solid #17432f;border-left:4px solid var(--ok);border-radius:8px;padding:12px 16px;margin:14px 0}
+  .warn{background:#1d0d12;border:1px solid #4b1a26;border-left:4px solid var(--bad);border-radius:8px;padding:12px 16px;margin:14px 0}
+  ul,ol{margin:6px 0;padding-left:20px} li{margin:3px 0}
+  .rc{color:var(--c);font-weight:700}.ru{color:var(--u);font-weight:700}.rr{color:var(--r);font-weight:700}.re{color:var(--e);font-weight:700}.rl{color:var(--l);font-weight:700}.rm{color:var(--m);font-weight:700}
+  .pill{display:inline-block;font-size:11px;padding:1px 8px;border-radius:99px;border:1px solid var(--line);background:var(--panel2);color:var(--mute);white-space:nowrap;margin-right:3px}
+  .p-maj{color:var(--lava);border-color:#5a2a12}.p-min{color:var(--ice);border-color:#1d4a66}.p-mic{color:var(--mute)}
+  .p-wpn{color:var(--gold);border-color:#5a4a12}.p-evt{color:var(--ok);border-color:#1d5a3f}.p-sys{color:var(--void);border-color:#3e2a66}
+  .bar{height:10px;border-radius:6px;background:var(--panel2);overflow:hidden;margin-top:6px}
+  .bar i{display:block;height:100%}
+  .quote{font-size:18px;color:#fff;border-left:4px solid var(--lava);padding:6px 16px;margin:14px 0;font-style:italic}
+  code{background:var(--panel2);padding:1px 6px;border-radius:4px;font-size:12.5px}
+  footer{margin-top:60px;border-top:1px solid var(--line);padding-top:20px;color:var(--mute);font-size:13px}
+  .small{font-size:12.5px;color:var(--mute)}
+</style>
+</head>
+<body>
+
+<header class="hero"><div class="wrap">
+  <span class="tag">Game Design Document · v6.8 · Launch Edition (launch 24 Oct 2026; 25 Oct mobile &amp; flow patch) · October 2026 · updated after the v0.5 playtest, the v0.6–v0.7 builds, the v0.7.1 Polish review, the v0.7.3 Plaza pass, the v0.7.4–v0.7.5 playtest fixes, the v0.8 Content build, the v0.8.1 vote &amp; hazards pass and the v0.8.2 map identity pass and the v0.8.3–v0.8.5 map passes, the v0.9–v0.9.1 Retention builds and the v0.9.2 Lock &amp; Range pass and the v0.9.3 dummies / ranged assist / HUD pass and the v0.9.5 Classic map change and the v0.9.6 centred join &amp; vote and RC1 (v0.9.7) and the v0.9.10 detail &amp; colour-variety pass (the v0.9.8–v0.10 reworks were cancelled) and the v0.9.11 weapon FX &amp; final polish and the v0.9.12 clarity &amp; balance pass and the v0.9.13 detail / glow / economy pass and the v0.9.14 hand-made pass (Toy Box UI, drawn icons, clean models, mini-bot crowd) and the v0.9.15 districts &amp; toy-kit pass and the v0.9.16 signs, swings &amp; balance pass and the v0.9.17 ice, weapon boxes &amp; descriptions pass and the v0.9.18 bold weapon models, two-way arches &amp; push-pull Magnet pass and the v0.9.19 smooth weapons &amp; repel fix and the v0.9.20 crafted weapons, Squeaky Hammer &amp; Mythic Magnet pass and the v0.9.21 free spin timer &amp; rarity order and the v0.9.22 game passes &amp; skip timer and the v0.9.23 hourly coin spin &amp; final balance (RC2)</span>
+  <h1>CRUMBLE!</h1>
+  <p class="sub">The floor doesn't wait for you.</p>
+  <p class="lede">A 12-player Roblox knockback brawler on a collapsing 3D arena. There are no health bars: you knock rivals into the void. Weapons range from <b class="rc">Common</b> to <b class="rm">Mythic</b>, and <b>higher rarity means harder knockback</b>. <b>Merge duplicates</b> to level a weapon from L1 to L10 for even more knockback. <b>Timing never changes</b>: every weapon keeps the same windup, cooldown and range at every rarity and level, so the better read still wins.</p>
+  <div class="chips">
+    <span class="chip"><b>12</b> players</span><span class="chip"><b>28×28</b> arena of 8-stud tiles</span><span class="chip">Shrinking edge</span>
+    <span class="chip"><b>6</b> rarities, Common to Mythic</span><span class="chip">Merge to <b>L10</b></span>
+    <span class="chip"><b>9</b> weapons at launch, <b>20</b> in Year 1</span><span class="chip"><b>3</b> launch worlds, <b>9</b> in Year 1</span>
+    <span class="chip">Launch (Day 0): <b>Sat 24 Oct 2026</b></span>
+  </div>
+</div></header>
+
+<nav><div class="wrap">
+  <a href="#changes">Build changes</a><a href="#review">Design review</a><a href="#pitch">Pitch</a><a href="#world">Setting</a><a href="#laws">Laws</a><a href="#round">A round</a><a href="#hub">Hub</a><a href="#ftue">First 15 min</a><a href="#feel">Controls &amp; feel</a><a href="#arena">Arena &amp; modes</a><a href="#combat">Combat</a><a href="#rarity">Rarity</a><a href="#merge">Merge</a><a href="#weapons">Weapons</a><a href="#fair">Fairness</a><a href="#bots">Bots</a><a href="#economy">Economy</a><a href="#spins">Spins</a><a href="#art">Art</a><a href="#tech">Tech</a><a href="#roadmap">Roadmap &amp; Season Pass</a><a href="#kpi">KPIs</a><a href="#balance">Balance ops</a><a href="#buildlog">Build log</a>
+</div></nav>
+
+<div class="wrap">
+
+<!-- ============ v3.1 PLAYTEST CHANGES ============ -->
+<section id="changes">
+  <div class="num">v3.1 — PLAYTEST CHANGES (from build v0.5)</div>
+  <h2>What the first playtest changed.</h2>
+  <p>The first build (v0.5 Scale) showed three problems. These changes replace the older numbers everywhere in this document and are already in build <b>v0.5.1</b>.</p>
+  <table>
+    <tr><th>Problem found</th><th>Cause</th><th>Change</th></tr>
+    <tr><td><b>Holes didn't kill.</b> You could walk straight across a gap without falling, and bots didn't fall in either.</td><td>A 4-stud hole is smaller than a character's stride. At walk speed 20 you're over the gap for about 0.1 s, then the Humanoid steps back up.</td><td><b>Tiles are now 8×8 studs on a 28×28 grid</b> (the arena is still 224 studs across). Every hole is 8 studs wide, which takes about 0.3 s to cross and drops you about 9 studs, so you fall unless you <b>jump</b>. Crack warning goes from 1.15 s to <b>1.4 s</b> because tiles are bigger. Bonus: 784 parts instead of 3,136, which helps server FPS and phones.</td></tr>
+    <tr><td><b>Players could climb</b> back up the sides of tiles.</td><td>The Humanoid's Climbing state treats tile edges and seams like a ladder.</td><td><b>Climbing is disabled</b> for every player and bot. Once you're below the floor surface, you're falling.</td></tr>
+    <tr><td><b>No pressure from the edges.</b> Random holes alone didn't push players together.</td><td>Only Sudden Death closed the edge, and only for the last 30 s.</td><td><b>New: Shrinking edge.</b> The whole outer ring flashes for 2.5 s, then drops <b>together</b>, all round long and faster each phase (see section 08). Random holes still happen inside.</td></tr>
+    <tr><td><b>Shield change (requested).</b></td><td>−60% made blocking feel weak.</td><td><b>Block now stops 90%</b> of knockback, but guard is a resource: it <b>drains while held</b> (5/s), each blocked hit drains base KB × 4, it <b>regenerates slowly</b> (8/s after 2 s, so 12.5 s from empty to full), you need 15 guard to raise it again, and the hit that breaks it lands at <b>full knockback</b> with a 1 s stun (see section 09).</td></tr>
+  </table>
+  <h3>v3.2: what building v0.6 Power changed</h3>
+  <table>
+    <tr><th>Topic</th><th>Decision</th></tr>
+    <tr><td><b>Spin Vault arrives in v0.6</b></td><td>Copies need a source, so the Vault (earned spins and coin spins) ships with the Forge. Robux spin products stay in v0.9 Monetization.</td></tr>
+    <tr><td><b>Wildcards</b></td><td>Wildcards are a per-rarity balance, made at the Forge's <b>Wildcard Bench</b>: <b>2 copies of a weapon → 1 wildcard of that rarity</b>, or <b>3 copies → 1 wildcard of the next rarity</b>. A wildcard counts as a copy of <i>any</i> weapon of its rarity. Merging uses your own copies first, then wildcards. Converting is always the player's choice, so the game never spends copies of one weapon to level another without asking.</td></tr>
+    <tr><td><b>Effective odds with pity</b></td><td>Measured over 300,000 spins of the real code: Common 53.5%, Uncommon 25.3%, Rare 11.6%, Epic 6.3%, Legendary 2.5%, Mythic 0.84%. The Vault shows the base odds plus live pity counters. The effective rates go on the odds info page.</td></tr>
+    <tr><td><b>Training Range</b></td><td>A lane in the west of the Yard with three dummies on rails. They fly exactly as far as a real hit would (same formula, same launch physics), then show the measured distance in studs and glide back. A <b>Preview next level</b> toggle lets players feel a merge before paying for it.</td></tr>
+    <tr><td><b>Starter quests (pulled forward from v0.9)</b></td><td>Survive 60 s → 200 coins · Knock 1 rival off → 150 coins · Finish top 3 → +1 spin. Together with Boot Training L1→2 (150 coins), a new player reaches the Forge and the Vault within their first few rounds.</td></tr>
+    <tr><td><b>Acceptance test passed</b></td><td>"Merges are atomic; 0 lost items in 1,000 test merges": a fuzz test ran 40,000 random requests including <b>1,198 merges</b> against the real server code. Every merge cost exactly the listed copies and coins, every rejected request left the profile unchanged, and there were 0 violations. Pity never exceeded 20 / 60 / 200.</td></tr>
+  </table>
+  <h3>v3.3: what building v0.7 Art 1 changed</h3>
+  <table>
+    <tr><th>Topic</th><th>Decision</th></tr>
+    <tr><td><b>Procedural first, meshes later</b></td><td>v0.7 ships every model as detailed part-built geometry and every animation as code-driven R15 joint offsets, so the game is complete without any uploaded assets. Any weapon or bot can be replaced by dropping a model into <code>WeaponModels</code> or <code>BotModels</code>. Parts named <i>Accent</i> or <i>Gem</i> keep the rarity and level treatment automatically.</td></tr>
+    <tr><td><b>Level stages, concretely</b></td><td>L3 accents tinted in the rarity colour (metal) · L4 accents turn neon and add a light · L5 swing trail (on only during the swing) · L7 aura particles · L8 KO light pillar where the victim fell · L10 Ascended: 15% larger, halo ring, white-gold sparkle and an "ASCENDED" title under the PWR badge.</td></tr>
+    <tr><td><b>Rarity finish at L1</b></td><td>Rarity shows from level 1 through a glowing gem (Uncommon+), light (Rare+) and particles (Epic sparkle, Legendary embers, Mythic void wisps). Levels add on top of this and never replace it.</td></tr>
+    <tr><td><b>Third crack stage</b></td><td>Amber at warning → red neon at 55% → <b>cracked lava at 85%</b> of the warning time, then the drop. All three stages stay within the amber/red family reserved for cracks.</td></tr>
+    <tr><td><b>Readability fixes</b></td><td>The arena pylons changed from orange to cool white-cyan, and the bot palette dropped amber, red, gold and pastels (cyan, teal, magenta, lime, ice, white). Near the floor, amber and red now always mean "cracking". The never-falling core is steel diamond plate, so it reads as safe without using a colour.</td></tr>
+    <tr><td><b>Animation layering</b></td><td>Clips write Motor6D C0 offsets on top of the default walk and idle. Swing clips are timed from each weapon's server windup, so the strike pose lands on the hit frame. The guard pose, flail, flinch and victory poses come from replicated attributes (<code>Blocking</code>, <code>LaunchedUntil</code>, <code>Victory</code>).</td></tr>
+  </table>
+
+  <h3>v3.4: what the v0.7.1 Polish review changed</h3>
+  <table>
+    <tr><th>Topic</th><th>Decision</th></tr>
+    <tr><td><b>Clear power ladder (replaces the overlap model)</b></td><td>Playtesters found Mythic too weak: Void Hook had 0 base knockback, so the rarity bonus multiplied nothing, and Bomb Bag (11) hit softer than the free Boot (14). Rarity bonuses are now <b>C ×1.00 · U ×1.12 · R ×1.25 · E ×1.40 · L ×1.60 · M ×1.80</b>, plus 4% per level, and the KB cap rose from 28 to <b>40</b>. Each rarity's strongest single hit beats the tier below at both L1 and L10, and an automated test checks this on every build (table in section 10). PWR now runs 100–216 <i>(v3.8: Legendary/Mythic trimmed to ×1.50/×1.60 and the cap to 34, so PWR runs 100–196)</i>.</td></tr>
+    <tr><td><b>Void Hook rework</b></td><td>The Void Hook no longer drags both players to a meeting point. It <b>yanks the target to 4 studs in front of you, then slams them away 0.4 s later</b> (base 20 KB: 36 at L1, 40 when capped), with an 8 s cooldown. A parry during the windup cancels the yank. Block still cuts the slam by 90%.</td></tr>
+    <tr><td><b>Guard drain 4 → 3 per base KB</b></td><td>The comment said a Boot "breaks guard on the 3rd hit", but with Boot at 14 base KB it actually broke on the 2nd. Drain is now base KB × 3, so a Boot breaks a full guard on the 3rd blocked hit and a Void Hook on the 2nd. This keeps Block worth holding now that the mid tiers hit harder.</td></tr>
+    <tr><td><b>Mid-tier retune</b></td><td>Slingshot 9→11, Bat 13→15, Pan 10→14, Magnet 8→13 pull, Bomb Bag 11→16. Timing is unchanged, so skill rules (windup, cooldown, range) still separate the weapons.</td></tr>
+    <tr><td><b>Mythic still loses to good play</b></td><td>Mythic beats a fresh player in one or two clean hits, but the 0.4 s yank windup is readable and parryable. Block −90% applies to every hit, and guard drain uses <i>base</i> KB, so a Mythic doesn't break guards faster than its weapon type. Matchmaking brackets were widened to the new PWR range: Rookie ≤120, Standard 121–160, Elite 161+.</td></tr>
+    <tr><td><b>Join prompt before every match</b></td><td>No automatic pull-in. Every lobby player sees a "NEXT MATCH" card for <b>15 s</b> with JOIN! [J] and SIT OUT [N] buttons. Not answering means sitting out, and there is no auto-join toggle, so AFK players never get thrown in. The window closes early once everyone has answered. Bots fill every seat not taken by a player who joined (12 total). If nobody joins, the game asks again after 6 s. Answers can be changed until the window closes. This replaces the old "minimum 2 humans / solo wait" rule: one player who says yes is enough to start a match.</td></tr>
+    <tr><td><b>Separate windows, not one tabbed menu</b></td><td>Weapons ⚔️, Spin Vault 🎰 and Forge 🔨 each have their own round dock button (left middle of the screen) and their own window, with a title tab, wallet and close button. Opening one closes the other, so screen space never stacks. B toggles Weapons. Quests moved to the bottom-right, away from the kill feed.</td></tr>
+    <tr><td><b>Rounded art direction</b></td><td>No sharp boxes anywhere the player looks: see "Bubbly Brawler" below. The only exception is the <b>arena tiles</b>. They stay crisp 8-stud squares because they're the gameplay grid: holes must line up exactly, and a rounded tile would leave gaps that read as holes.</td></tr>
+  </table>
+
+
+  <h3>v4.8: dummies, long-range assist &amp; HUD layout (v0.9.3). These override older rows.</h3>
+  <table>
+    <tr><th>Topic</th><th>Decision</th></tr>
+    <tr><td><b>Range dummies (root cause)</b></td><td>The heaps came from force-limited Avatar Joint Upgrade joints on script-built rigs (AnimationConstraint with IsKinematic = false): without a live Humanoid balancing them, the limbs sag even with an anchored root. All bot and dummy rigs now get <b>kinematic joints</b> (they behave like Motor6Ds). Dummy flight is <b>kinematic</b>: the root stays anchored and follows the ballistic arc of the launch velocity (workspace gravity, landing at post height). It tips back up to 90° (plus one full flip on big hits), lands lying flat, stays down 0.35 s, stands up at the landing spot (0.4 s Back ease), and glides home after ResetDelay. If it lands outside the yard, it snaps back to its post. Watchdog: if the head ends up at or below the hips, or more than 6 studs from the root, the dummy is rebuilt (max 3 per dummy).</td></tr>
+    <tr><td><b>Long-range aim assist</b></td><td>Applies to Slingshot (projectile), Bomb Bag (thrown), Magnet (pull) and Void Hook (tether). Tracking reach = weapon Range + body radius + 1, inside a ±40° cone (melee keeps ±55°, reach + 5). The Slingshot leads the target's flat velocity (2 iterations, ≤1 s of travel). The Bomb Bag throw distance = distance to the tracked target, clamped to 6 … Range, encoded as the length of the aim vector; the server clamps it, and unit aims (bots, no target) throw at full reach. Ground guide while the weapon is out: a dotted line to the exact reach with an end bar (dots dim past the target), or for the Bomb Bag an arc to the landing spot plus a blast-radius circle. It is yellow while tracking and white otherwise. Server hit rules are unchanged.</td></tr>
+    <tr><td><b>HUD layout system</b></td><td>The client <code>Layout</code> module sets UIScale = clamp(min(w/1280, h/760), 0.55, 1.15) on every HUD block. <b>Top stack</b> (UIListLayout under the timer; only visible items take space): join pill 10 · tutorial 20 · tip 30 · spectate 40 · hint 50 · toast 60. Its width is the gap between the coin/level cards and the right column (340–640 units), and long text wraps. Lobby tips hide while anything ranked below 50 is showing. <b>Right column</b> (top-right): quests 10 (auto-height) or the Range card 20 while in the Range, kill feed 30. The join card and vote sit under the stack, shrunk to fit above the action bar (×0.4 min), and the tutorial card hides while the join card is up. On touch, the action bar is centred in the space left of a lower thumb cluster (SHOVE (−90,−95), RUSH (−200,−60), BLOCK (−185,−165)). The wind gauge is at the left edge, mid-screen. The layout gui is DisplayOrder 4, so menu windows cover it. Verified by <code>tools/layout_sim.py</code>: 0 overlaps across 6 states × 7 resolutions.</td></tr>
+  </table>
+
+  <h3>v4.7: Lock &amp; Range feel (v0.9.2). These override older rows, including v4.6.</h3>
+  <table>
+    <tr><th>Topic</th><th>Decision</th></tr>
+    <tr><td><b>One aim system: LOCKED</b></td><td>Hits (Shove, Block, Rush) always go the way the character is <b>facing</b>, and you turn by walking. The yellow ground chevron shows the hit direction during a match and in the Range. <b>UNLOCKED (camera aim) and every toggle are removed</b>: T, middle mouse, R3, the pill and the mobile 🔒 button. T / MMB / R3 are now free keys.</td></tr>
+    <tr><td><b>Aim assist + tracking ring</b></td><td>Every frame the client picks the enemy aim assist will hit: inside ±55° of your facing, within weapon reach + body radius + 5 studs (max 45), and less than 10 studs above or below you. The score is distance × (2 − alignment), and the lowest wins. That target gets a <b>pulsing yellow ring</b> under its feet and a bobbing drawn <b>V marker</b> overhead (only you see them). On Shove or Block, the character snaps to face it and the aim is sent toward it, so the server's hit cone check passes. Candidates: living round players and bots during a match; the Range dummies and Sparring Bot in the Range (mid-air dummies skipped). The server's hit rules are unchanged: assist only turns you, so it never extends reach.</td></tr>
+    <tr><td><b>Range dummies stand back up</b></td><td>On landing, a dummy re-anchors and tweens upright at the landing spot (post height and facing, 0.3 s Back ease), and its LaunchedUntil is cleared so the flail stops. After ResetDelay (2.2 s) it glides back to its post. If it lands off the yard, it snaps straight back onto its post.</td></tr>
+    <tr><td><b>Fight kit in the Range</b></td><td>The match action bar (weapon card, SHOVE / RUSH / SHIELD bars) is visible while InRange, and the Range info panel moves above it. RangeService runs the real shield for Range players. It sets the Blocking attribute (shield bubble + guard pose) and the Guard attribute. Guard drains at the held rate, a blocked Sparring Bot hit costs GuardDrainPerKB × 8 (24), it regenerates at 8/s after a 2 s delay, and you can't raise the shield below MinBlockGuard. Leaving the Range drops the shield. Rush in the Range is checked against the server cooldown and plays the dash pose and FX for everyone.</td></tr>
+    <tr><td><b>Rush animation</b></td><td>A new procedural "Rush" loop (priority: flail &gt; rush &gt; block / victory), driven by the replicated <code>RushUntil</code> attribute (server time; RushTime + 0.12 s). Pose: lean forward 30°, head up, arms swept back, long stride, with a quick arm pump. FX: a white→blue speed streak from shoulders to feet, two side speed lines, a dust kick and a whoosh. The local player sees it instantly (client-side attribute + local FX), and the server broadcast skips the duplicate.</td></tr>
+    <tr><td><b>Tutorial step 6</b></td><td>"FACE &amp; HIT: AIM ASSIST" replaces "try LOCKED mode": land one shove with an aim-assist target in the Range. The reward is unchanged (150 coins + 1 Boot copy, paid once). Steps: Range → shove ×2 → block → parry → rush → aim-assist hit → join → survive → MERGE the Boot to L2.</td></tr>
+  </table>
+
+  <h3>v4.6: playtest fixes (v0.9.1). These override older rows.</h3>
+  <table>
+    <tr><th>Topic</th><th>Decision</th></tr>
+    <tr><td><b>Aim modes (corrected)</b></td><td>The hitting system has two modes. <b>LOCKED</b>: every hit (Shove, Block, Rush) goes the way the character is facing; you turn by walking, and a yellow ground chevron shows the hit direction. <b>UNLOCKED</b> (default): hits go where the camera looks, and the character turns to that direction on the hit. Toggle: T, middle mouse, R3, the on-screen pill, or the 🔒 mobile button. The v0.8.5 enemy lock-on (reticle, next target, camera swing) is removed; it was a misread of the request.</td></tr>
+    <tr><td><b>Merge only, Boot included</b></td><td>No weapon levels up by "training". <b>Boot Training (coins only) is removed.</b> Every weapon, the Boot included, levels L1→L10 only by merging copies + coins (Common copy row 1,1,1,2,2,2,3,3,4 and coins 100…4,000). Boot copies come from spins (the Boot is now in the Common pool, so it shows up as a duplicate), from Common wildcards, and once from the tutorial (+1 Boot copy with the 150-coin Range reward). The Boot can also feed the wildcard bench like any weapon. Boots already levelled with coins keep their level.</td></tr>
+    <tr><td><b>Range dummies</b></td><td>At rest, dummies are anchored and upright. A shove un-anchors one, the server simulates its flight (never a player's client), and the reset glides it back and re-anchors it. This fixes dummies toppling into heaps.</td></tr>
+    <tr><td><b>Tutorial access</b></td><td>REPLAY TUTORIAL in QUESTS restarts it any time (the reward is paid only once). The step list is: Range → shove ×2 → block → parry → rush → try LOCKED mode → join → survive → MERGE the Boot to L2.</td></tr>
+    <tr><td><b>Glyphs</b></td><td>Never type symbols that Roblox fonts lack (✕ ▲ ▶ ◀ ○ ▸ ➜). Close buttons draw their X from two bars; arrows use emoji.</td></tr>
+  </table>
+
+  <h3>v4.5: retention (v0.9)</h3>
+  <table>
+    <tr><th>Topic</th><th>Decision</th></tr>
+    <tr><td><b>First-time tutorial</b></td><td>9 short steps with a blue guide arrow, a ▼ marker and a SKIP button: walk to the Range → shove a dummy ×2 → <b>block the Sparring Bot</b> → <b>parry it</b> (it shows a red "GET READY" then a white "NOW!" flash; after 6 tries the step passes anyway) → Rush once → try Locked aim → join a match → survive it (3 timed tips on screen) → train the Boot to L2. Finishing the Range part pays <b>150 coins</b> (exactly one Boot Training), and a parry earns the "Parry!" badge. After the tutorial, a one-time hint points at the first free spin. The server checks every step (order, real block/parry from the Sparring Bot, Boot level). Players with any saved rounds skip it. The shop stays closed until the tutorial is done or skipped.</td></tr>
+    <tr><td><b>Sparring Bot</b></td><td>A blue anchored dummy at the front of the Range. It swings at the nearest player within 10 studs: 0.65 s red wind-up, then a 0.25 s white flash, then the hit. Holding block through it = BLOCKED. Pressing block during the flash (or up to 0.3 s before it) = PARRY. Otherwise it gives a small shove (no fall risk inside the Range).</td></tr>
+    <tr><td><b>Daily quests</b></td><td>3 per day (UTC midnight reset), picked per player from an 11-quest pool by a fixed shuffle (the same on every server), with at most one map quest per day. Rewards are 70–150 coins, paid the moment the quest is done and outside the 120-coin round cap. Bots count for KO quests except "Knock off a real player". Shown in the lobby tracker (after the starter quests) and in QUESTS 📜.</td></tr>
+    <tr><td><b>Weekly chain</b></td><td>5 steps in order, reset Monday 00:00 UTC: play 5 (150) → 10 KOs (200) → top 3 ×3 (250) → survive 15 min total (300) → win 2 (<b>+1 spin</b>). A round can complete at most one step, so the chain takes about 20+ good rounds (about 4–5 sessions).</td></tr>
+    <tr><td><b>Season 1 track</b></td><td>30 free tiers, 600 season XP each (season XP = match XP, so about 4 rounds per tier). Rewards: coins, wildcards at tiers 5/10/15/20/25 and <b>4 spins</b> at tiers 8/16/24/30. Claim one tier or CLAIM ALL; a red badge on the dock shows unclaimed tiers. The Season tab shows the <b>free track only</b> (v1.0); the premium Season Pass is a concept for v1.2 (section 19). Season 1 runs <b>24 Oct – 18 Dec 2026</b> and starts on launch day (key S1; the S1P preview key is only used before StartsAt, so Studio test progress resets by itself). After the season ends (19 Dec 00:00 UTC) no more Season XP is added until the Season 2 update.</td></tr>
+    <tr><td><b>Leaderboards</b></td><td>Global top 10 for TOP WINNERS (wins in 4+ human lobbies only), TOP SHOVERS (players knocked off; bots never count) and TOP LEVELS. They use OrderedDataStores, are posted after saves (at most every 2 min per player, always on leave) and refresh every 90 s. Shown on three HALL OF FAME boards at the back of the Yard and in LEADERS 👑. Without DataStores they show THIS SERVER and say so.</td></tr>
+    <tr><td><b>Shop &amp; products</b></td><td>SHOP 💎: 1 / 5 / 12 spins (R$49 / 199 / 449), 500 / 2,500 coins (R$25 / 99), and a 2x Coins boost for 30 min (R$49; doubles round coins and raises the cap to 240). Exact odds and the player's live pity counters are shown above the products. <b>PolicyService</b>: if paid random items are restricted (or the policy can't be read), spin products are hidden and refused server-side. Coins, the boost and all earned spins stay. Receipts are idempotent (PurchaseId kept in the profile, last 100), and the profile is <b>saved before a receipt is acknowledged</b>; if the save fails, the grant is rolled back and NotProcessedYet is returned. Kill switches: Config.Shop.Enabled plus DataStore CrumbleFlags/Shop = false (checked every 5 min). No prompts in rounds, on results or during the tutorial. Product Ids are 0 until created on the website; in DevMode the button simulates the purchase. <b>v6.5:</b> SKIP TIMER (R$25, makes the free spin ready, only while counting down, max 3/day, treated as a paid random item) and a PASSES tab with 4 one-time game passes: <b>AUTO MERGE</b> R$199 (Forge MERGE EVERYTHING + auto-merge after spins, own copies only, switchable), <b>FAST FREE SPINS</b> R$249 (free spin every 3 h), <b>2x COINS FOREVER</b> R$299 (stacks with the boost to 3x, cap scales), <b>VIP</b> R$149 (gold head tag + [VIP] chat prefix). Convenience and coins only: no pass raises knockback. Ownership: UserOwnsGamePassAsync on join + PromptGamePassPurchaseFinished → player attribute Pass_&lt;Key&gt;.</td></tr>
+    <tr><td><b>Profile v3</b></td><td>Adds Tutorial, Daily, Weekly, Season, BoostUntil, Receipts and Badges. It upgrades automatically from v2.</td></tr>
+    <tr><td><b>Still deferred</b></td><td>Raised Molten floors and the lobby fly-over camera move to the RC polish window (W11–12).</td></tr>
+  </table>
+
+  <h3>v4.4: fast ice, full immersion, lock-on (v0.8.5)</h3>
+  <table>
+    <tr><th>Topic</th><th>Decision</th></tr>
+    <tr><td><b>Ice = speed</b></td><td>The Ice Rink makes you <b>faster</b>, never slower. Skating top speed is ×1.25 run speed (25 studs/s instead of 20) for players and bots. You push off hard (72 studs/s² toward where you steer; bots 80), so you're at full speed in about 0.35 s and turns grip. Letting go still glides (Glide 0.75/s: about half the slide of v5.9). <i>v6.0 playtest: "too slippery". Was ×1.45 / push 46 / glide 0.35.</i> Blizzard gusts still add on top.</td></tr>
+    <tr><td><b>One map, one world</b></td><td>A player in a match sees only that map. On Molten and Ice, the cozy stadium is replaced by the map's <b>own stadium</b>: Molten has basalt stands, ember banners, lava trims and torches; Ice has frosted stands, snow on every canopy and icicles. The Yard's green tree islands are put away for everyone. For players fighting in the match, the lobby, Yard and training range are hidden on their own screen. The south side (where the lobby normally sits) gets the map's own landmarks. Molten: basalt spires, floating rocks pouring lava falls, three volcanoes, lava fountains. Ice: icebergs, glacier mountains with snow caps, crystal ice arches, frozen waves. Everything comes back on KO or at results.</td></tr>
+    <tr><td><b>Two aim modes</b></td><td><b>Free Aim</b> (default): hits go where the camera looks. <b>Locked</b>: locks onto the best enemy within 44 studs (closest and most in front of the camera). Your character keeps facing them, the camera gently swings toward them, and Shove, Block and Rush aim at them. A red reticle marks the target. The lock drops past 60 studs or on KO, then re-locks the next enemy automatically. Keys: T, middle mouse or R3 toggles; R or D-pad right picks the next target. There's a mode pill on screen, plus 🎯/⟳ buttons on mobile. Lock-on is aim help only. Windups, ranges and server hit checks are unchanged, so it can't hit through blocks or out of range.</td></tr>
+  </table>
+
+  <h3>v4.3: detail &amp; fixes (v0.8.4)</h3>
+  <table>
+    <tr><th>Topic</th><th>Decision</th></tr>
+    <tr><td><b>Between matches</b></td><td>The world belongs to the lobby between matches. When the results end, the arena, surroundings, sky and weather return to the default cozy sky stadium. A map's look only exists from the moment it's loaded for a match until that match's results end.</td></tr>
+    <tr><td><b>Hole readability</b></td><td>A hole must never look like a hazard tile. Under every arena there is a dark surface (Molten: black crust shelf; Ice: dark open water), so holes read dark. Hazard tiles carry a raised border, a bright core and particles. Nothing glows directly under the floor.</td></tr>
+    <tr><td><b>Molten / Ice detail</b></td><td>Molten: rim lava runs and drips, rim cracks, corner fire braziers, dead trees, obsidian, steam vents, under-island drips. Ice: rim snow and icicles, corner crystal lamps, snowmen, frozen waterfalls, open-water leads, diamond dust.</td></tr>
+    <tr><td><b>Bot reliability</b></td><td>Bots get a re-plan "go" at match start, a walk order every think, and Ice sliding steered by their goal. Server steps are isolated from each other's errors.</td></tr>
+  </table>
+
+  <h3>v4.2: real maps (v0.8.3)</h3>
+  <table>
+    <tr><th>Topic</th><th>Decision</th></tr>
+    <tr><td><b>Theme rule</b></td><td>Each map must match its real-world theme in colour. Lava is orange and yellow, never pink; the Cozy pastel-purple tints don't apply to the Molten set (no lavender lift on dark rock). The map changes the <b>whole world</b>: sky, sun, fog, clouds and colour grade, for everyone, from countdown to results. It also changes the weather around the camera, re-tints the shared stadium, and replaces the space under the arena (cloud sea, lava ocean or frozen lake).</td></tr>
+    <tr><td><b>Classic</b> <i>(was The Grid, v4.9)</i></td><td>The plain original arena: the default sky-stadium look (Glossy Pop since v5.0: white/grey tiles, blue core, hazard rim), sunny clear sky and sun motes. <b>No map features</b>: no hazards, no modifiers, no themed props.</td></tr>
+    <tr><td><b>Molten Core</b></td><td>A basalt arena over a lava ocean (currents, crust rafts, bubbles, sparks), 6 volcanoes with lava rivers and smoke, 14 basalt spires, and a smoky red sky with a big red sun and ash clouds. Weather: ash and embers. Volcanoes lob lava bombs into the ocean (scenery only). Stadium grass turns to ash.</td></tr>
+    <tr><td><b>Ice Rink</b></td><td>A frozen lake (glacier sheet, drifts, cracks), 12 icebergs, 6 glacier mountains, the aurora, and an overcast sky with no sun and cold fog. Heavy snow, with a white-out and sideways snow during gusts. Stadium grass turns to snow.</td></tr>
+    <tr><td><b>Bot movement</b></td><td>Target range 26 → 80 studs. Walk orders are re-issued every think (Roblox cancels MoveTo after 8 s). Bots circle their target during cooldowns, and drop a goal they haven't moved toward in 1 s. Rule: a bot that isn't stunned or frozen is never still for more than about 1 s.</td></tr>
+  </table>
+
+  <h3>v4.1: map identity (v0.8.2)</h3>
+  <table>
+    <tr><th>Topic</th><th>Decision</th></tr>
+    <tr><td><b>Principle</b></td><td>Every map has to be recognisable from one screenshot, and it has to change what you do in a fight. So each map gets its own floor material, rim, surroundings, lighting mood (client-side, only at the arena) and <b>one signature hazard</b> plus a supporting one. The 28×28 floor, phases, shrink and core rules stay identical, so skills carry over.</td></tr>
+    <tr><td><b>The Grid = construction yard</b> <i>(REMOVED in v4.9: the normal map is now Classic with no hazards)</i></td><td><s>Sky stadium plus two tower cranes reaching over the floor and hazard chevrons on the rim. <b>Crane drops</b>: from 14 s, every 9 s (2 at once after 70 s), a 1-ton weight hangs over a tile for 2.2 s (a growing shadow, a pulsing 22-stud ring, a ⚠). Then it slams: a radial blast of 20 → 10 studs within 11 studs (<b>halved when blocking</b>, a new reason to hold block), and the tile plus its 4 neighbours crack (0.9 s). The core is immune. Bots read the shadow as unsafe. Effect on play: zone denial and forced repositioning, plus "bait them under the shadow".</s></td></tr>
+    <tr><td><b>Molten Core = volcano</b></td><td>A basalt floor over a glowing magma underplate (seams and holes glow), volcano spires, ash and a magenta dusk mood. Magma pools: 3 every 7 s (4 after 60 s), sinking 1.5 st/s (about 2.8 s to be swallowed), walking at 30%. Each pool <b>spreads once</b> after 5 s (14 pools max). Geysers: 2 every 10 s, 86 st/s launch, a 1.4 s warning. <b>Eruption</b> at 95 s: 7 geysers at once. Effect on play: the floor shrinks from the inside as well as the edge, so Rush management decides fights.</td></tr>
+    <tr><td><b>Ice Rink = frozen lake</b></td><td>An ice and glacier floor, aurora, crystal clusters, snow and a cold fog mood. Skating Accel 1.5 / Glide 0.3 (about 2.3× more glide than v0.8). Bots skate too (Accel 2.2). KB ×1.2, frost delay 0.4 s. Traps: 3 every 6 s, max 7, <b>2 s freeze</b>. <b>Blizzard gusts</b>: from 26 s, every 21 s, a 2.5 s warning (the Foreman calls the direction, plus a camera-relative arrow), then a 12 st/s push for 4.5 s on every skater. Effect on play: positioning against the wind matters, and wind-assisted shoves carry people off the edge.</td></tr>
+  </table>
+
+  <h3>v4.0: vote &amp; hazards (v0.8.1)</h3>
+  <table>
+    <tr><th>Topic</th><th>Decision</th></tr>
+    <tr><td><b>No weapon crates</b></td><td>The v0.8 supply crates handed out free weapons mid-match, which undercut the whole Spin → Merge → Forge loop (why spin for a Bomb Bag if a crate gives you one?). They're removed. <b>Rule:</b> outside RUMBLE, the only way to fight with a weapon is to own it. RUMBLE is the one exception because players opt into it by vote, and its weapons are round-only and never unlocked. That makes it a try-before-you-spin showcase. <b>v6.0: RUMBLE weapon boxes</b> (Rumble only, still never in Classic): the first box drops 6 s after GO, then one every 10 s (at most 3 on the floor), onto a healthy tile near the middle. Walking into it swaps you to a random <i>different</i> weapon at L5 for the rest of the round; nothing is unlocked. Boxes vanish after 22 s or when their tile goes, and bots go for them too.</td></tr>
+    <tr><td><b>Lobby vote (map + mode)</b></td><td>The vote replaces the automatic rotation. During the join window (12 s since the 25 Oct patch), <b>everyone in the Yard</b> votes, including players who sit out (they still care what plays next, and they might join late). There are 3 map cards (hotkeys 1/2/3) and a CLASSIC / RUMBLE row. <b>Majority wins</b>. A tie is broken at random among the leaders, and no votes means a random map (the mode defaults to Classic). The window closes early only when every player has answered the join question <i>and</i> voted. The Foreman announces the result.</td></tr>
+    <tr><td><b>Ice Rink: frost traps</b></td><td>2 traps every 7 s (3 after 70 s), at most 5 active, each lasting 16 s, and 45% are placed near a fighter. They're readable but subtle: an icy tint, a glowing snowflake and sparkles. Stepping on one freezes you in an ice block for <b>1.4 s</b> (no moving, attacking, blocking or rushing). <b>Any hit shatters the ice</b> early and launches normally, so a frozen fighter becomes a target that opponents race to hit. The freeze is never a KO by itself. Bots don't see traps, which gives attentive humans an edge. Skating and frost-delayed cracks stay.</td></tr>
+    <tr><td><b>Molten Core: magma pools</b></td><td>The map's signature hazard. 2 pools every 9 s (3 after 70 s) form on healthy tiles outside the core rings, 50% near a fighter. Each crusts and bubbles for 1.5 s, then becomes <b>semi-solid</b> for 12 s. A fighter in a pool sinks 1.1 studs/s (the pool rises back at 0.8/s when it's empty), walks at 35% speed and can't jump. At <b>4.2 studs deep</b>, the pool swallows the tile. <b>Rush is the escape</b>: a Rush from inside magma adds a 44 studs/s pop, enough to clear the rim. That makes Rush cooldown management matter on this map. Shoving someone into a pool while their Rush is on cooldown is the new combo. Geysers stay but are rarer (every 14 s from 24 s).</td></tr>
+    <tr><td><b>RUMBLE hazards</b></td><td>RUMBLE multiplies hazard frequency ×1.5 (magma, traps, geysers) on top of its 1.3× collapse.</td></tr>
+  </table>
+
+  <h3>v3.9: Content (v0.8)</h3>
+  <table>
+    <tr><th>Topic</th><th>Decision</th></tr>
+    <tr><td><b>Low-poly nature kit</b></td><td>The ellipsoid "egg/blob" islands were rejected too. All nature props are now <b>faceted low-poly</b>, built from real triangles (two WedgeParts per triangle): islands with a jagged grass rim, a dirt band and a rock underside that tapers to a point; faceted pine cones; round trees with faceted canopy clusters; faceted boulders (with an invisible box collider); and hanging rock shards. The Yard underside, the arena's surrounding islands and the map themes all use one shared kit (<code>Art.Island / IslandUnder / Pine / Blob / Rock / Shard</code>).</td></tr>
+    <tr><td><b>Map rotation</b> <i>(replaced by the vote in v4.0)</i></td><td>One map per match, in the order <b>The Grid → Molten Core → Ice Rink</b>. Every map uses the same 28×28 floor, so the core rules and phase timings never change; each map adds one twist. The next mode and map show on the join card and HUD before you decide to join.</td></tr>
+    <tr><td><b>Molten Core: geysers</b></td><td>Basalt-purple tiles over a glowing <b>magenta</b> magma sea (amber and red stay reserved for cracking tiles). From 14 s, every 8 s (two at a time after 70 s), an intact tile that isn't in the shrink ring bubbles and glows for <b>1.6 s</b>, then launches everyone within 5.5 studs: 72 up, 12 random sideways drift, 1 s stun. 60% of picks are near a player. Geysers rarely KO on their own. They set up hits, and a bad landing can drop you through a hole.</td></tr>
+    <tr><td><b>Ice Rink: skating + frost</b></td><td>Movement on ice is <b>momentum-based</b>: a client-side planar LinearVelocity eases toward your stick direction (rate 2.4/s) and glides when you let go (0.7/s). The legacy Humanoid ignores part friction, so friction alone can't do this. Knockback is ×1.12. <b>Frost</b>: crack warnings stay hidden for the first 0.3 s, so you get slightly less time to react. Shrink-ring warnings are never hidden.</td></tr>
+    <tr><td><b>Supply crates</b> <i>(removed in v4.0)</i></td><td>Classic: 2 crates at 20 s, then every 20 s. Rumble: every 10 s. A crate falls for 1.4 s onto a safe tile near the centre (at most 4 on the floor). Touching it swaps your weapon until the round ends. <b>Contents are rubber-banded</b>: a random weapon (not your current one) at the level whose power multiplier is closest to the lobby average, and it can't be a rarity whose L1 already beats the average by more than 12%. A crate is a big upgrade for a Boot player and a side-grade for a Mythic player. Crates vanish after 22 s or when their tile falls.</td></tr>
+    <tr><td><b>RUMBLE</b></td><td>Every 3rd match. Every fighter gets a random weapon at <b>L5</b> (a try-before-you-spin showcase for the whole roster), weapon boxes drop every 10 s (v6.0; the v0.8 crates are gone) and the floor collapses 1.3× faster. Saved loadouts return in the lobby. Rewards are the same as Classic.</td></tr>
+    <tr><td><b>THE FOREMAN</b></td><td>The announcer becomes a character: the banner gets a "THE FOREMAN" name tag and robot-babble voice blips (one pitched blip for about every 2.5 letters). There are line pools for each map intro, Rumble, crates, crate grabs, geysers and winners, and players can cycle the voice volume (V: 100 / 50 / off). Recorded voice lines can replace the babble later without touching the code.</td></tr>
+    <tr><td><b>Bots in small lobbies</b></td><td>The target is a bot win rate of 10–30% when 1–3 humans play. In those lobbies, at most 1 bot hunts each human, and bot aggression toward humans is ×0.7. <b>Adaptive tier shift</b>: when a bot wins, the next bots are one difficulty tier lower (at most −2); after 2 human wins, they move back up one tier. Timeouts don't count. This replaces the separate "Rookie" tier the roadmap mentioned. Bots also go for crates (Easy 30%, Medium 55%, Hard 75% chance per crate, only when the path is safe).</td></tr>
+    <tr><td><b>Balance: Big Boot</b></td><td>The Big Boot was the weakest pick. It now has KB 11 (was 10), lift 13 (was 12) and a 2.8 s cooldown (was 3.0). The ladder test still passes, because Common's best hit is still the Gloves combo.</td></tr>
+    <tr><td><b>Deferred to v0.9</b></td><td>Raised basalt floors on Molten Core and the ambient fly-over camera are not built yet. They move to v0.9 "Polish".</td></tr>
+  </table>
+
+  <h3>v3.8: feel and balance (v0.7.5)</h3>
+  <table>
+    <tr><th>Topic</th><th>Decision</th></tr>
+    <tr><td><b>Mythic toned down, ladder kept</b></td><td>Mythic beat everyone too easily. The rarity bonuses are now <b>C ×1.00 · U ×1.12 · R ×1.25 · E ×1.40 · L ×1.50 · M ×1.60</b>, still +4% per level. That makes Mythic L10 ×1.96 (was ×2.16). <b>Void Hook</b>: KB 20 → 17, reach 22 → 18, cooldown 8 → 9 s, and the slam comes 0.45 s after the pull (was 0.4 s), so there's more time to block. The <b>KB cap</b> drops from 40 to <b>34</b>. Best hit per rarity at L1: 16 / 16.8 / 17.5 / 18.2 / 24 / 27.2 (Mythic was 36). At L10: 21.8 / 22.2 / 22.5 / 22.9 / 29.8 / 33.3 (Mythic was 40). Each tier still beats the one below, and the automated test checks it. Squishing <i>every</i> tier was tested and rejected, because the low tiers then overlap.</td></tr>
+    <tr><td><b>No click-to-hit delay</b></td><td>Your own swing animation, sound and swoosh now play the moment you click. Before, they waited for the server's reply. The click carries a server-synced timestamp, and the server resolves the hit at <b>click time + windup</b>, so your network delay is subtracted from the windup (at most 0.2 s, so it can't be abused). Windups are also a little shorter: Boot 0.12, Big Boot 0.30, Bat 0.26, Pan 0.22, Magnet 0.26, Slingshot 0.17 and Bomb Bag 0.18 s.</td></tr>
+    <tr><td><b>Hits you can feel</b></td><td>The Boot kick is re-animated with clear stages: wind-up, high chamber, snap, a short hold and re-chamber. The Big Boot is a spinning roundhouse. Every melee swing draws a bright crescent swoosh along its path (vertical for kicks and the uppercut, sideways for bats) and an air-puff ring. Each hit adds a white impact flash, a shockwave disc pointing the way the victim flies, a comic word (POW / BAM / WHAM / KABOOM, scaled by knockback) and a 0.07 s <b>hit-stop</b> on both fighters. The attacker's camera shakes harder too.</td></tr>
+    <tr><td><b>Organic nature models</b></td><td>The stacked-cylinder ("cake") pines and floating islands are gone. <b>Pines</b> are four drooping ellipsoid tiers with tufts under each rim and a pointed tip. <b>Islands</b> keep a flat walkable grass top with a soft grass lip and a dirt band, and below that a craggy body of overlapping boulders that tapers to a hanging tip, with side boulders and floating pebbles. The Yard's own underside uses the same boulder style. All of these come from one shared kit (<code>Art.Pine</code> / <code>Art.Island</code>).</td></tr>
+    <tr><td><b>The join question is always findable</b></td><td>Client controllers now start independently, so if one fails to load, the join card still appears. When you're not in the current match, a status pill explains what's going on ("Match in progress · you'll be asked to join after it"). The card itself appears during the 20 s join window.</td></tr>
+  </table>
+
+  <h3>v3.7: playtest fixes (v0.7.4)</h3>
+  <table>
+    <tr><th>Topic</th><th>Decision</th></tr>
+    <tr><td><b>Matches always finish</b></td><td>The round ends only when <b>one fighter is left</b> or the 180 s cap is reached. It no longer ends early when every human has fallen ("drones win"). Players who fell watch the finish from the Yard. If <b>nobody joins</b>, the bots play an exhibition match, and the join question returns after it. Nobody gets re-asked every few seconds.</td></tr>
+    <tr><td><b>Bigger Yard and Range</b></td><td>The Yard is 240 × 126 studs (1.5×) with the same hub-and-spoke Plaza layout. The Training Range is a 73 × 58 paddock with 4 lanes and stripes out to about 60 studs. Mythic hits fly about 40 studs, so the old 40-stud lanes cut off the top of the power ladder. The distance labels are world-sized, not screen-sized.</td></tr>
+    <tr><td><b>Wayfinding polish</b></td><td>Paths end on the pad centre, guide lines stop 1.5 studs short of each end, and pads are drawn above paths.</td></tr>
+    <tr><td><b>Engine change: Avatar Joint Upgrade</b></td><td>Roblox now gives player characters AnimationConstraints instead of Motor6Ds, and their C0 is read-only. Our holds and swings are procedural, so the place sets <code>StarterPlayer.AvatarJointUpgrade = Disabled</code>. As a fallback, the animation layer writes AnimationConstraint <code>.Transform</code> on PreSimulation. Uploaded Animation assets would work either way.</td></tr>
+  </table>
+
+  <h3>v3.6: the "Plaza" layout and animation pass (v0.7.3)</h3>
+  <table>
+    <tr><th>Topic</th><th>Decision</th></tr>
+    <tr><td><b>Style stays Cozy, with more detail</b></td><td>No new art direction. The owner asked for "this style only", made more detailed. Props get secondary shapes (trims, stitching, rivets, stickers, faces), and squashed round shapes use real ellipsoids (sphere meshes), because Ball parts are forced to be perfectly round.</td></tr>
+    <tr><td><b>Weapon holds and swings</b></td><td>Every weapon has a <b>grip offset</b>, a <b>holding pose</b> (READY stance, boxing guard, bat on the shoulder, pan by the head, slingshot aimed, two-handed magnet, bomb at the chest, hook upright) and its own <b>swing clip</b>. The clip eases back into the hold. All of this is generated from one authoring tool (<code>tools/weapon_poses.py</code>) into <code>WeaponPoses</code>, so designers tune numbers rather than code. Timing is still owned by the weapon data: each clip follows the server's windup, so the strike frame matches the hit frame and animation never changes balance.</td></tr>
+    <tr><td><b>Bots: the "Toy Brawler" roster</b></td><td>11 named bots, each with a personality look: BLITZ, NOVA, TURBO, VOLT, JINX, ZEPHYR, KABOOM, GLITCH, TITAN, MOCHI and RAPTOR. Each has a round helmet with a screen face, a chest plate, a belly badge and 2–3 signature accessories. The nameplate uses the bot's signature glow colour. Amber, red and gold stay reserved for cracking and winners.</td></tr>
+    <tr><td><b>Yard layout: the Plaza</b></td><td>The layout is hub-and-spoke. You spawn at the back, and a round plaza with a tile fountain is the centre. Paths with guide lines run from the plaza to each station:
+      <ul>
+        <li>The three gate arches at the front, facing the arena (Classic in the middle, Rumble and Duel at the sides).</li>
+        <li>The Vault (east) and the Forge (west).</li>
+        <li>The Range (west-back) and the podium (east-back).</li>
+      </ul>
+      Armory stumps line the front edge, and one of them is a mystery stump that teases the next weapon.</td></tr>
+    <tr><td><b>Arena surroundings: Sky Stadium</b></td><td>
+      <ul>
+        <li>East and west: curved crescent stands with a crowd.</li>
+        <li>North: the Scoreboard Island (CRUMBLE! board, rules screens, firework cannons).</li>
+        <li>Corners: hot-air balloons. There is also a blimp.</li>
+        <li>South: left <b>open</b>, so players in the Yard can watch the match, with only low lantern islands below the sight-line.</li>
+      </ul>
+      All decor has no collision and can't be hit by queries, so falling players never snag on it.</td></tr>
+    <tr><td><b>UI layout</b></td><td>Still the Cozy Cards skin, in a new arrangement:
+      <ul>
+        <li>Top bar: three chips (phase · timer bubble · players left).</li>
+        <li>Top-left: the coins and level cards in a row.</li>
+        <li>Left edge: menus as a 2-column grid of app tiles, with the key hint in a corner and the Help Tips pill below.</li>
+        <li>Right: quests.</li>
+        <li>In a round: a weapon card (rarity stripe, PWR) next to a skills card with key caps and cooldown bars.</li>
+      </ul></td></tr>
+  </table>
+
+  <h3>v3.5: the "Cozy" reference-style rework (v0.7.2)</h3>
+  <table>
+    <tr><th>Topic</th><th>Decision</th></tr>
+    <tr><td><b>Art direction: soft low-poly toy world</b></td><td>Based on a reference screenshot the owner supplied. We take its <i>style</i>, not its winter theme. Everything is flat SmoothPlastic colour with no realistic textures. Props are chunky and rounded (log fences, pines, barrels, crates, stalls with striped awnings). Lighting is bright and soft, with lavender-tinted shadows, light haze and drifting white sparkles. This replaces the darker "premium metal" look of v0.7. Colours stay clean and saturated; the softness comes from the lighting. Gameplay colours are unchanged: amber and red still mean cracking only.</td></tr>
+    <tr><td><b>Wayfinding in the world</b></td><td>Cream paths with <b>glowing guide lines</b> lead from the spawn to every station. Each station has a <b>glowing green pad</b> with a floating label (name · action · tag) and a <b>floating coloured name plate</b>: Vault gold, Forge orange, Range blue, portals in their mode colour. New players can find everything without reading a sign.</td></tr>
+    <tr><td><b>UI: "Cozy Cards" (replaces "Bubbly Brawler")</b></td><td>White cards, dark ink text, a 1.5 px soft border and about 10 px corners, with no heavy gradients. Layout:
+      <ul>
+        <li>A left card stack: coins with a blue + button, level and XP, menu buttons and a Help Tips toggle.</li>
+        <li>A hint pill at the top centre with an "i" bubble.</li>
+        <li>Coloured buttons with white text.</li>
+        <li>White, outlined text over the 3D world.</li>
+      </ul>
+      The skin picks text colour from the colour behind the text, so menus stay readable even when colours change at runtime.</td></tr>
+    <tr><td><b>Longer intermission</b></td><td>The join card is open for 20 s (it was 15), followed by a 15 s lobby countdown (it was 3), and results stay up for 12 s (it was 10). During the countdown players can still join late or leave, and the seat count updates live. There is still no auto-join, and bots fill every empty seat.</td></tr>
+    <tr><td><b>Performance</b></td><td>The renderer is now ShadowMap instead of Future (cheaper on mobile, and closer to the soft reference look). World props are static and anchored. On moving rigs, only the big plates are rounded.</td></tr>
+  </table>
+  <h3>New ideas: the "Bubbly Brawler" style guide (v3.4)</h3>
+  <p>Inspired by the friendly, chunky look of the biggest Roblox hits: thick outlines, rounded everything and toy-like bounce. It stays fully saturated, never pastel.</p>
+  <div class="grid g3">
+    <div class="card"><h4>UI shape</h4><p>Every panel and button has rounded corners (about 30% of the short side, from 6 to 18 px), a <b>thick near-black outline</b> (2.5 px on buttons, 3 px on panels) and a soft top-to-bottom gradient. Titles sit in a coloured pill tab that overlaps the window edge.</p></div>
+    <div class="card"><h4>Type</h4><p><b>Fredoka One</b> everywhere: HUD, menus, signs, nameplates and PWR badges. White text always has a dark outline, so it reads on any background.</p></div>
+    <div class="card"><h4>Motion</h4><p>Buttons scale up 6% on hover and down 8% on press. Windows pop in with a back-ease. The join card's countdown bar turns red, with ticks, for the last 5 s.</p></div>
+    <div class="card"><h4>Colour roles</h4><p>Each window has its own colour: Weapons blue, Vault gold, Forge orange. Green = join and confirm, grey = sit out and cancel, red = close. Amber and red in the world still mean only <i>cracking</i>.</p></div>
+    <div class="card"><h4>Rounded world</h4><p>Every block becomes a rounded composite (core + cross box + 4 edge cylinders). Long rails, girders and pillars get a rounded cross-section, and slabs and panels become rounded rectangles. Signs are rounded, outlined panels, and crowd fans are capsules. Arena tiles are the only square parts.</p></div>
+    <div class="card"><h4>Budget</h4><p>Rounding adds 5 parts per block. On moving rigs, only plates of 0.8 studs and up are rounded, and tiny trims stay square, so bots stay mobile-friendly. Static world parts are cheap. Custom uploaded meshes are never altered.</p></div>
+  </div>
+
+  <div class="note"><b>Why the shield stays fair at 90%:</b> a Boot (14 base KB × 3 = 42 guard per hit, v3.4) breaks a full guard on the 3rd blocked hit, and the Void Hook (17 × 3 = 51, v3.8) on the 2nd, and two attackers working together break it in two or three swings. Holding block also cuts walk speed in half and doesn't stop the floor, so turtling on a cracking tile still loses. Parry is still the best answer, and it still reflects the attacker's full scaled knockback.</div>
+</section>
+
+<!-- ============ 00 REVIEW ============ -->
+<section id="review">
+  <div class="num">00 — DESIGN REVIEW</div>
+  <h2>Is rarity-power + merging the better system?</h2>
+  <div class="grid g2">
+    <div class="card">
+      <h4 style="color:var(--ok)">Why it's better</h4>
+      <ul>
+        <li><b>Visible progress:</b> players can see and feel their weapon getting stronger, which is the main thing that brings Roblox players back.</li>
+        <li><b>Rarity means something:</b> a Mythic actually feels Mythic.</li>
+        <li><b>Duplicates always matter:</b> every copy feeds a merge, so no spin is "wasted".</li>
+        <li><b>A long chase:</b> 9 levels × 20 weapons gives players goals for a year or more.</li>
+        <li><b>Spending has a clear point,</b> which supports a sustainable studio.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h4 style="color:var(--bad)">Risks, and how this doc handles them</h4>
+      <ul>
+        <li><b>Pay-to-win perception</b> → a hard knockback cap, timing that never scales, and normalised Ranked/Duel modes.</li>
+        <li><b>New players getting crushed</b> → Rookie lobbies and Power Rating (PWR) matchmaking.</li>
+        <li><b>The free Boot becoming useless</b> → the Boot can be trained to L10 with coins only.</li>
+        <li><b>Endless gaps between players</b> → a maxed Common equals a fresh Epic L4 (both ×1.36).</li>
+        <li><b>Paid random items giving power</b> → PolicyService checks and fully earnable paths.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="fix"><b>Verdict:</b> adopted. Rarity and merge level raise <b>knockback only</b>. <b>Windup, cooldown, range, projectile speed and duration never change.</b> Highest possible multiplier: <b>×1.76</b> (Mythic L10). Hard cap: <b>28 studs per hit</b>.</div>
+</section>
+
+<!-- ============ 01 PITCH ============ -->
+<section id="pitch">
+  <div class="num">01 — THE PITCH</div>
+  <h2>Every round is a closing door.</h2>
+  <p class="quote">"Twelve players. One arena falling into the void. No health, no guns: just shove, block, parry, and a weapon that hits harder the more you invest in it. Be the last one standing."</p>
+  <div class="grid g3">
+    <div class="card"><div class="k">Genre</div><h4>Physics knockback party-brawler</h4><p>A last-player-standing arena game. The floor is the only thing that eliminates you, and weapons decide where you fly.</p></div>
+    <div class="card"><div class="k">Audience</div><h4>Roblox players aged 9–16</h4><p>About 60% mobile, 35% PC, 5% console. Short sessions, friend groups, and players who like to collect and upgrade.</p></div>
+    <div class="card"><div class="k">Comparable games</div><h4>Fall Guys × Stumble × Blade Ball progression</h4><p>Party-game chaos and readability, with the collecting and upgrading that keeps Roblox players coming back.</p></div>
+    <div class="card"><div class="k">Player fantasy</div><h4>"I'm the one who survives."</h4><p>Clutch parries on the last tile, launching three rivals with one Frying Pan, upgrading a favourite weapon to a glowing L10.</p></div>
+    <div class="card"><div class="k">Session</div><h4>About 20 minutes, about 6 rounds</h4><p>A round lasts at most 3 minutes. Results, rewards, merging at the Forge and quest progress happen between rounds.</p></div>
+    <div class="card"><div class="k">Why it clips</div><h4>Physical comedy every round</h4><p>Huge launches, last-second tile drops, parries that send the attacker flying, and the 12-player chaos of a Rumble round.</p></div>
+  </div>
+  <h3>Design pillars</h3>
+  <div class="grid g4">
+    <div class="card"><h4>1 · Readable chaos</h4><p>Twelve players, but every crack, wind-up and crate can be read at a glance.</p></div>
+    <div class="card"><h4>2 · Skill decides the moment</h4><p>Power decides how far a hit sends someone. Timing decides whether it lands at all.</p></div>
+    <div class="card"><h4>3 · Always progressing</h4><p>Every round gives coins, XP or copies. Every session moves a bar forward.</p></div>
+    <div class="card"><h4>4 · Places, not palettes</h4><p>Each new world is a real 3D place with its own hazard rules.</p></div>
+  </div>
+</section>
+
+<!-- ============ 02 SETTING ============ -->
+<section id="world">
+  <div class="num">02 — SETTING &amp; TONE</div>
+  <h2>The Crumble League.</h2>
+  <p>CRUMBLE! is a cosmic game show broadcast across dimensions. Its host, <b>THE FOREMAN</b>, is a giant demolition robot with a stadium voice. He builds beautiful arenas for the sole purpose of breaking them. Players are contestants. Bots are <b>League Drones</b>, each with a personality and catchphrase. Every new world is "a new studio the Foreman has built."</p>
+  <div class="grid g3">
+    <div class="card"><h4>The Foreman's announcer lines</h4><p>"TILE DOWN!" · "Shoved into next week!" · "Three left… the floor is hungry." · "PARRY! Someone call a tow truck!" · "Last one standing… it's YOU!"</p><p class="small">Subtitled, with a voice-volume slider. About 60 lines at launch and 15 new lines per world.</p></div>
+    <div class="card"><h4>Tone</h4><p>Loud, cheeky, cartoon-physical comedy with no cruelty. Falling is funny, not punishing: your character pinwheels into the void with a comic "wheee" and a fall card.</p></div>
+    <div class="card"><h4>League Drones (bots)</h4><p>11 named personalities (EDGE_LORD taunts, PAN_PETE loves frying pans, VOID_VI is reckless). Always tagged <code>[BOT]</code>.</p></div>
+  </div>
+</section>
+
+<!-- ============ 03 LAWS ============ -->
+<section id="laws">
+  <div class="num">03 — THE LAWS</div>
+  <h2>Rules the whole game obeys.</h2>
+  <div class="grid g3">
+    <div class="card"><h4>1 · The floor eliminates players</h4><p>No weapon or hazard deals damage. Only falling ends your round.</p></div>
+    <div class="card"><h4>2 · Power grows, timing never does</h4><p>Rarity and merge level increase knockback. Windup, cooldown, range and duration are fixed for each weapon, forever.</p></div>
+    <div class="card"><h4>3 · Power is capped</h4><p>×1.76 maximum multiplier and 28 studs maximum per hit. Block, parry and positioning always work.</p></div>
+    <div class="card"><h4>4 · The Boot is free and can grow</h4><p>The only free weapon. It can be trained to L10 with coins alone.</p></div>
+    <div class="card"><h4>5 · Spins are earned</h4><p>Spins come from Robux, milestones, the weekly chain, the season track, events, and (v6.6) the <b>hourly COIN SPIN</b>: 1,000 coins, once an hour, no weekly cap. Coins are the real limit, so playing earns spins; the timer only stops coin hoarders opening 20 at once. (The v6.4 free spin every 6 h was removed in v6.6.)</p></div>
+    <div class="card"><h4>6 · A lobby is never empty</h4><p>Bots fill seats up to 12, matched to the lobby's power, and always labelled.</p></div>
+  </div>
+</section>
+
+<!-- ============ 04 ROUND ============ -->
+<section id="round">
+  <div class="num">04 — A ROUND, SECOND BY SECOND</div>
+  <h2>What actually happens.</h2>
+  <table>
+    <tr><th>Time</th><th>Event</th><th>Player sees and feels</th></tr>
+    <tr><td>−20 s</td><td>Intermission in the Yard</td><td>Map portal countdown, quick merge at the Forge, emote with friends</td></tr>
+    <tr><td>−6 s</td><td>Teleport and fly-over</td><td>The camera sweeps the map and shows this world's hazard. The Foreman intro line plays.</td></tr>
+    <tr><td>0 s</td><td>Spawn ring</td><td>12 pads in a ring with 3 s spawn protection (shown as a shimmer). Weapon in hand, rarity glow visible.</td></tr>
+    <tr><td>0–10 s</td><td>Grace</td><td>No collapse. Players spread out and size each other up by their weapon glow.</td></tr>
+    <tr><td>10 s</td><td>Crumble phase</td><td>The first random tiles glow amber, shake and break into 3D debris. Music layer 2 comes in.</td></tr>
+    <tr><td>26 s</td><td>First shrink</td><td>The whole outer ring flashes amber, then red, and drops together. "THE EDGE IS FALLING! MOVE IN!" The HUD shows a countdown to the next shrink.</td></tr>
+    <tr><td>20 s</td><td>First crates</td><td>Two gold crates fall with beacon beams, and players race for them.</td></tr>
+    <tr><td>60 s</td><td>Break phase and first hazard</td><td>Holes open inside the arena. The map hazard fires for the first time (geysers, gravity flip and so on).</td></tr>
+    <tr><td>~90 s</td><td>Mid-round</td><td>Usually 5–6 players are left. A kill-feed banner shows each KO, with the attacker's weapon icon and rarity colour.</td></tr>
+    <tr><td>120 s</td><td>Collapse phase</td><td>Islands form and fights are forced. The music gets more intense.</td></tr>
+    <tr><td>150 s</td><td>Sudden death</td><td>The last rings fall at 152 s and 160 s, leaving only the 4×4-tile core (32×32 studs). Random holes keep eating it. The screen edge pulses red.</td></tr>
+    <tr><td>End</td><td>Winner</td><td>Slow-motion on the final KO, the camera orbits the winner and confetti fires. Timeout means a shared "Survivors!" banner.</td></tr>
+    <tr><td>+10 s</td><td>Results</td><td>A podium of the top 3, then MatchScore, coins, XP and copies earned, and quest progress. <b>No purchase prompts.</b></td></tr>
+  </table>
+  <p><b>When you fall:</b> the camera follows you into the void with a "YOU FELL — 7th of 12" card, then gives you two choices: <b>Spectate</b> (cycle through survivors) or <b>Return to Yard</b> (you're placed into the next round automatically).</p>
+</section>
+
+<!-- ============ 05 HUB ============ -->
+<section id="hub">
+  <div class="num">05 — THE HUB: "THE YARD"</div>
+  <h2>A 3D lobby where every system lives.</h2>
+  <div class="grid g3">
+    <div class="card"><h4>Map portals</h4><p>Three to six glowing world portals with a live player count. You can also use the Quick Play portal.</p></div>
+    <div class="card"><h4>Mode gates</h4><p>Classic · Rumble · Duel (+7) · Ranked (+140) · Squads (+168).</p></div>
+    <div class="card"><h4>The Spin Vault</h4><p>A giant 3D slot machine showing odds and pity counters. Spinning plays a rarity-coloured light show.</p></div>
+    <div class="card"><h4>The Forge</h4><p>The merge station. Drop in copies, the hammer animation plays, and the knockback number ticks up. Boot Training happens here too.</p></div>
+    <div class="card"><h4>Training Range</h4><p>Dummies on rails show the knockback distance of any weapon you own, and <b>preview the next level</b> before you merge.</p></div>
+    <div class="card"><h4>Hall of Falls</h4><p>Leaderboard podiums (wins, KOs, Ranked) with 3D statues of the top three, a season board and a quest NPC.</p></div>
+  </div>
+</section>
+
+<!-- ============ 06 FTUE ============ -->
+<section id="ftue">
+  <div class="num">06 — FIRST 15 MINUTES (FTUE)</div>
+  <h2>Hooked before the first spin.</h2>
+  <table>
+    <tr><th>Time</th><th>Step</th><th>Teaches</th><th>Reward</th></tr>
+    <tr><td>0:00</td><td>Practice Platform: shove a dummy off the edge</td><td>Shove and the knockback idea</td><td>—</td></tr>
+    <tr><td>0:40</td><td>A dummy shoves you: hold Block</td><td>Block and guard</td><td>—</td></tr>
+    <tr><td>1:00</td><td>Slow-motion prompt: Block at the flash</td><td>Parry</td><td>"Parry!" badge</td></tr>
+    <tr><td>1:20</td><td>Rush across a breaking bridge</td><td>Rush, and reading crack colours</td><td>—</td></tr>
+    <tr><td>1:45</td><td>First Classic round (Rookie lobby, Easy bots)</td><td>The real game, with three on-screen tips</td><td>Coins and XP</td></tr>
+    <tr><td>~5:00</td><td>Starter quest 1: "Survive 60 seconds"</td><td>—</td><td>200 coins</td></tr>
+    <tr><td>~6:00</td><td>Forge tutorial: train the Boot to L2</td><td>Merge and leveling</td><td>Boot L2</td></tr>
+    <tr><td>~10:00</td><td>Starter quest 2: "Knock 1 rival off"</td><td>KO credit</td><td>150 coins</td></tr>
+    <tr><td>~15:00</td><td>Starter quest 3: "Finish top 3"</td><td>Placement</td><td><b>+1 spin</b>, then a guided first spin with odds shown</td></tr>
+  </table>
+</section>
+
+<!-- ============ 07 FEEL ============ -->
+<section id="feel">
+  <div class="num">07 — CONTROLS, CAMERA &amp; GAME FEEL</div>
+  <h2>It has to feel crunchy.</h2>
+  <table>
+    <tr><th>Action</th><th>PC</th><th>Mobile</th><th>Console</th></tr>
+    <tr><td>Shove / weapon</td><td>Left click or Space</td><td>Big right thumb button</td><td>RT</td></tr>
+    <tr><td>Rush</td><td>Shift</td><td>Dash button</td><td>LB</td></tr>
+    <tr><td>Block / parry</td><td>Hold E or right click</td><td>Shield button</td><td>LT</td></tr>
+    <tr><td>Emote</td><td>B</td><td>Emote wheel</td><td>D-pad</td></tr>
+  </table>
+  <div class="grid g3">
+    <div class="card"><h4>Camera</h4><p>Over the shoulder, pulled back to show about 30 studs. A soft auto-tilt shows the floor in front of you, and the camera zooms out slightly when players crowd together.</p></div>
+    <div class="card"><h4>Impact</h4><p>60 ms hit-stop, screen shake that scales with the knockback, a knockback trail in the weapon's rarity colour, and impact sounds that get heavier with rarity.</p></div>
+    <div class="card"><h4>Accessibility</h4><p>Cracks use shape <i>and</i> colour (colour-blind safe), there's a reduce-motion setting, announcer subtitles and remappable controls.</p></div>
+  </div>
+</section>
+
+<!-- ============ 08 ARENA ============ -->
+<section id="arena">
+  <div class="num">08 — ARENA &amp; MODES</div>
+  <h2>Sized for twelve.</h2>
+  <div class="grid g4">
+    <div class="card"><div class="k">Arena</div><div class="big">28×28</div><p>784 tiles of 8×8 studs (224 studs across), about 65 per player. A single hole is always too wide to walk over.</p></div>
+    <div class="card"><div class="k">Round cap</div><div class="big">180 s</div><p>About a 3.5-minute cycle including results and intermission.</p></div>
+    <div class="card"><div class="k">Crack warning</div><div class="big">1.4 s</div><p>2.4 s when a player is standing on the tile. A shrinking ring always warns for 2.5 s.</p></div>
+    <div class="card"><div class="k">Spawn protection</div><div class="big">3 s</div><p>Ends early if you attack.</p></div>
+  </div>
+  <table>
+    <tr><th>Phase</th><th>Time</th><th>Random holes (8-stud tiles)</th><th>Shrinking edge</th><th>Notes</th></tr>
+    <tr><td>Grace</td><td>0–10 s</td><td>None</td><td>None</td><td>Spread out</td></tr>
+    <tr><td>Crumble</td><td>10–60 s</td><td>1.0 tile/s, 70% from the outer half</td><td>First ring at 26 s, then one every 16 s</td><td>The edge starts closing</td></tr>
+    <tr><td>Break</td><td>60–120 s</td><td>1.6 tiles/s</td><td>A ring every 12 s</td><td>Inner holes and the first hazard</td></tr>
+    <tr><td>Collapse</td><td>120–150 s</td><td>1.4 tiles/s</td><td>A ring every 10 s</td><td>Islands</td></tr>
+    <tr><td>Sudden death</td><td>150–180 s</td><td>0.6 tiles/s</td><td>A ring every 8 s until only the 4×4-tile core is left</td><td>Final stand on 32×32 studs</td></tr>
+  </table>
+  <h3>Shrinking edge</h3>
+  <p>The arena has 14 square rings (ring 13 is the outer edge, ring 0 is the 2×2 centre). On a schedule, the <b>whole outermost ring</b> turns amber, then red, for <b>2.5 s</b>, then every tile in it drops at once. The 2.5 s warning is enough to walk 50 studs, so nobody who's paying attention dies to the shrink alone. It kills people who are being shoved, stunned or greedy at the edge.</p>
+  <table>
+    <tr><th>Ring falls at</th><td>26 s</td><td>42</td><td>58</td><td>74</td><td>86</td><td>98</td><td>110</td><td>122</td><td>132</td><td>142</td><td>152</td><td>160</td></tr>
+    <tr><th>Safe square after</th><td>208</td><td>192</td><td>176</td><td>160</td><td>144</td><td>128</td><td>112</td><td>96</td><td>80</td><td>64</td><td>48</td><td>32 studs</td></tr>
+  </table>
+  <p class="small">Rings 0 and 1 (the 32×32-stud core) never shrink away. Only random holes can take them, which keeps a "Survivors!" timeout possible but rare. Random holes avoid the ring that's about to shrink anyway. Bots leave the next ring 5 s before it starts flashing. The HUD shows "EDGE FALLS 0:07" under the timer.</p>
+  <h3>Modes</h3>
+  <table>
+    <tr><th>Mode</th><th>Players</th><th>Power</th><th>Rules</th><th>Ships</th></tr>
+    <tr><td><b>Classic</b></td><td>12</td><td>Full (your rarity and level)</td><td>Funnel collapse, your own weapon, 2 crates every 20 s</td><td>Launch</td></tr>
+    <tr><td><b>Rumble</b></td><td>12</td><td>Fixed: random weapon at L5</td><td>Random weapon each round (any of them, as a try-out), weapon boxes every 10 s (v6.0), 1.3× collapse</td><td>Launch</td></tr>
+    <tr><td><b>Duel</b></td><td>2</td><td>Normalised (Even Ground)</td><td>1v1 best of three on a 10×10-tile arena (80 studs), humans only</td><td>+7</td></tr>
+    <tr><td><b>Ranked League</b></td><td>12</td><td>Normalised (Even Ground)</td><td>Classic rules with divisions (Bronze to Crumble Master) and 8-week seasons</td><td>+140</td></tr>
+    <tr><td><b>Squads</b></td><td>4 teams of 3</td><td>Full</td><td>The last team standing wins. No knockback between teammates.</td><td>Preview +84, permanent +168</td></tr>
+    <tr><td><b>King of the Tile</b></td><td>12</td><td>Full</td><td>Hold the moving gold tile to score. The floor still collapses.</td><td>+238</td></tr>
+  </table>
+  <p><b>Crates:</b> they contain a random weapon at the <b>lobby's average power</b>, last for the round only and never unlock permanently. <b>Server start:</b> a round starts with 2 or more humans, or with 1 human after a 30 s wait, and bots fill the rest of the 12 seats.</p>
+</section>
+
+<!-- ============ 09 COMBAT ============ -->
+<section id="combat">
+  <div class="num">09 — COMBAT</div>
+  <h2>Four controls. Power can't beat a good read.</h2>
+  <table>
+    <tr><th>Control</th><th>Effect</th><th>How power interacts with it</th></tr>
+    <tr><td><b>SHOVE</b></td><td>Your equipped weapon's attack</td><td>Knockback = base × (rarity bonus + level bonus)</td></tr>
+    <tr><td><b>RUSH</b></td><td>10-stud dash, 0.25 s, 4 s cooldown. Projectiles can't hit you in the last 3 studs. Body contact does 8 KB.</td><td>Rush is a <b>fixed 8 KB</b> that never scales</td></tr>
+    <tr><td><b>BLOCK (shield)</b></td><td><b>−90% knockback</b>. Guard 100. It drains <b>5/s while held</b> and base KB × 4 per blocked hit, then <b>regenerates slowly</b> at 8/s starting 2 s after release (12.5 s from empty to full). You need 15 guard to raise it again. You walk at half speed while blocking. <b>Guard break:</b> the breaking hit lands at <b>full knockback</b> plus a 1 s stun.</td><td>Guard drain uses <b>base</b> KB, so a Mythic can't shatter a guard faster than a Common. But a Mythic's guard-break hit lands at its full scaled knockback.</td></tr>
+    <tr><td><b>PARRY</b></td><td>Block in the first 0.18 s: reflects the hit and staggers the attacker for 0.5 s</td><td>Reflects the attacker's <b>full, scaled KB</b>. Stronger weapons are punished harder.</td></tr>
+  </table>
+  <div class="grid g3">
+    <div class="card"><h4>Juggle decay</h4><p>Each extra hit from a different attacker within 2 s does ×0.8 knockback (stacking, minimum ×0.5).</p></div>
+    <div class="card"><h4>KO credit</h4><p>The last hitter within 6 s gets the KO. Everyone else who hit you in that window gets an assist. A fall with no recent hit is a self-fall.</p></div>
+    <div class="card"><h4>Knockback cap</h4><p>No single hit can push more than <b>28 studs</b>. That's 3.5 tiles, so standing near the centre is always safe from a one-shot.</p></div>
+  </div>
+</section>
+
+<!-- ============ 10 RARITY ============ -->
+<section id="rarity">
+  <div class="num">10 — RARITY SYSTEM</div>
+  <h2>Common to Mythic: knockback rises with rarity.</h2>
+  <p><b>Formula (v1.0):</b> <code>Final KB = Base KB × Rarity Bonus × (1 + (Level − 1) × 0.03)</code>. Levels multiply the rarity bonus, so each tier keeps its lead at every level (the old flat +0.04 per level squeezed the tiers together at L10). The result is capped at <b>34</b> studs.</p>
+  <table>
+    <tr><th>Rarity</th><th>Spin odds</th><th>Rarity bonus</th><th>L1 multiplier</th><th>L10 multiplier</th><th>Visual</th></tr>
+    <tr><td class="rc">Common</td><td>55%</td><td>+0%</td><td>×1.00</td><td>×1.27</td><td>Clean metal and wood</td></tr>
+    <tr><td class="ru">Uncommon</td><td>26%</td><td>+12%</td><td>×1.12</td><td>×1.42</td><td>Green trim, soft glow</td></tr>
+    <tr><td class="rr">Rare</td><td>12%</td><td>+25%</td><td>×1.25</td><td>×1.59</td><td>Blue energy lines</td></tr>
+    <tr><td class="re">Epic</td><td>5%</td><td>+40%</td><td>×1.40</td><td>×1.78</td><td>Purple particles</td></tr>
+    <tr><td class="rl">Legendary</td><td>1.6%</td><td>+50%</td><td>×1.50</td><td>×1.91</td><td>Gold aura and a swing flare</td></tr>
+    <tr><td class="rm">Mythic</td><td>0.4%</td><td>+60%</td><td>×1.60</td><td>×2.03</td><td>Animated red-void shader with a unique sound</td></tr>
+  </table>
+  <h3>The power ladder (v1.0): strongest single hit per rarity</h3>
+  <table>
+    <tr><th>Rarity</th><th>Weapon</th><th>L1 hit</th><th>L10 hit</th></tr>
+    <tr><td class="rc">Common</td><td>Boxing Gloves (3rd hit)</td><td>15.0</td><td>19.1</td></tr>
+    <tr><td class="ru">Uncommon</td><td>Baseball Bat</td><td>16.8</td><td>21.3</td></tr>
+    <tr><td class="rr">Rare</td><td>Frying Pan</td><td>17.5</td><td>22.2</td></tr>
+    <tr><td class="re">Epic</td><td>Squeaky Hammer (v6.3)</td><td>21.0</td><td>26.7</td></tr>
+    <tr><td class="rl">Legendary</td><td>Bomb Bag</td><td>24.0</td><td>30.5</td></tr>
+    <tr><td class="rm">Mythic</td><td>Void Hook (yank + slam)</td><td>27.2</td><td>34.0 (cap)</td></tr>
+  </table>
+  <p class="small">The free Boot hits 14.0 at L1 and 17.8 at L10, so a fresh Mythic hits about 2.5× harder than a new player's Boot. This is checked by <code>tests/run_progression_tests.py</code>, test 5.</p>
+  <h3>Power ranges: a little overlap, a clear top</h3>
+  <div class="card">
+    <p class="small">Multiplier range per rarity (L1 → L10). Neighbouring tiers overlap a little (a maxed Common ≈ a Rare L2), and each tier's range sits higher than the one below at every level (v1.0).</p>
+    <div style="font-size:13px">
+      <div><span class="rc">Common</span> 1.00–1.27<div class="bar"><i style="margin-left:0%;width:31%;background:var(--c)"></i></div></div>
+      <div style="margin-top:6px"><span class="ru">Uncommon</span> 1.12–1.42<div class="bar"><i style="margin-left:10.3%;width:31%;background:var(--u)"></i></div></div>
+      <div style="margin-top:6px"><span class="rr">Rare</span> 1.25–1.59<div class="bar"><i style="margin-left:21.6%;width:31%;background:var(--r)"></i></div></div>
+      <div style="margin-top:6px"><span class="re">Epic</span> 1.40–1.78<div class="bar"><i style="margin-left:34.5%;width:31%;background:var(--e)"></i></div></div>
+      <div style="margin-top:6px"><span class="rl">Legendary</span> 1.50–1.91<div class="bar"><i style="margin-left:51.7%;width:31%;background:var(--l)"></i></div></div>
+      <div style="margin-top:6px"><span class="rm">Mythic</span> 1.60–2.03<div class="bar"><i style="margin-left:69%;width:31%;background:var(--m)"></i></div></div>
+    </div>
+    <p style="margin-top:12px"><b>Key equivalences (v1.0):</b> Common L10 (×1.27) ≈ Rare L2 (×1.29) · Mythic L1 (×1.60) ≈ Epic L5 (×1.57) ≈ Legendary L3 (×1.59) · Mythic L10 = ×2.03 (hits the 34 cap).</p>
+  </div>
+</section>
+
+<!-- ============ 11 MERGE ============ -->
+<section id="merge">
+  <div class="num">11 — MERGE SYSTEM</div>
+  <h2>Merge duplicates. Hit harder. Same timing.</h2>
+  <p>Every duplicate you roll becomes a <b>copy</b> of that weapon. At the Forge, merge copies plus coins to raise the weapon's level. Each level adds <b>+3% of the rarity's knockback</b> (v1.0: it multiplies, so rarer weapons gain a little more per level). Nothing else changes.</p>
+  <table>
+    <tr><th>Step</th><th class="rc">Common</th><th class="ru">Uncommon</th><th class="rr">Rare</th><th class="re">Epic</th><th class="rl">Legendary</th><th class="rm">Mythic</th><th>Coins</th><th>KB bonus (× rarity)</th><th>Visual unlock</th></tr>
+    <tr><td>L1→2</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>100</td><td>+3%</td><td>—</td></tr>
+    <tr><td>L2→3</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>200</td><td>+6%</td><td>Coloured finish</td></tr>
+    <tr><td>L3→4</td><td>1</td><td>1</td><td>2</td><td>1</td><td>1</td><td>1</td><td>400</td><td>+9%</td><td>Glowing accents</td></tr>
+    <tr><td>L4→5</td><td>2</td><td>2</td><td>2</td><td>1</td><td>1</td><td>1</td><td>700</td><td>+12%</td><td>Swing trail</td></tr>
+    <tr><td>L5→6</td><td>2</td><td>2</td><td>2</td><td>2</td><td>1</td><td>1</td><td>1,000</td><td>+15%</td><td>—</td></tr>
+    <tr><td>L6→7</td><td>2</td><td>2</td><td>2</td><td>2</td><td>1</td><td>1</td><td>1,500</td><td>+18%</td><td>Particle aura</td></tr>
+    <tr><td>L7→8</td><td>3</td><td>3</td><td>3</td><td>2</td><td>2</td><td>1</td><td>2,000</td><td>+21%</td><td>KO effect</td></tr>
+    <tr><td>L8→9</td><td>3</td><td>3</td><td>3</td><td>2</td><td>2</td><td>1</td><td>3,000</td><td>+24%</td><td>—</td></tr>
+    <tr><td>L9→10</td><td>4</td><td>4</td><td>4</td><td>2</td><td>2</td><td>1</td><td>4,000</td><td>+27%</td><td><b>Ascended model</b> + title</td></tr>
+    <tr><td><b>Total</b></td><td><b>19</b></td><td><b>19</b></td><td><b>20</b></td><td><b>14</b></td><td><b>12</b></td><td><b>9</b></td><td><b>12,900</b></td><td></td><td></td></tr>
+  </table>
+  <div class="grid g3">
+    <div class="card"><h4>Same-rarity wildcard</h4><p>Copies of <b>any other weapon in the same rarity</b> can be merged at <b>2:1</b>. Two Slingshot copies count as one Bat copy.</p></div>
+    <div class="card"><h4>Up-tier wildcard</h4><p><b>3 copies from the rarity below</b> make 1 wildcard copy for the next rarity (for example, 3 Legendary copies → 1 Mythic copy). This makes the top tiers reachable without perfect luck.</p></div>
+    <div class="card"><h4>Boot Training</h4><p>The free Boot has no copies, so it levels with <b>coins only</b>: 16,000 total to L10 (about 45 h for an average player, about 16 h for a skilled one). <b>Free players can always reach ×1.36.</b></p></div>
+  </div>
+  <p><b>After L10:</b> extra copies convert to coins (C 40 · U 100 · R 260 · E 700 · L 1,800 · M 5,000). Merges are permanent and server-validated. Tapping "Merge all" uses the cheapest path.</p>
+  <h3>How long to max a weapon (measured on the real v0.6 code, hundreds of runs each, pity included)</h3>
+  <table>
+    <tr><th>Goal</th><th>Expected spins</th><th>Free player (~10–15 spins/month)</th></tr>
+    <tr><td>One Common weapon to L10 (Gloves, using wildcards)</td><td>~51</td><td>~4–5 months</td></tr>
+    <tr><td>One Uncommon weapon to L10 (Slingshot, using wildcards)</td><td>~59</td><td>~4–6 months</td></tr>
+    <tr><td>One Rare weapon to L10 (Pan, using wildcards)</td><td>~113 (~180 without)</td><td>~8–11 months; Weapon Challenge copies shorten it</td></tr>
+    <tr><td>Void Hook (Mythic) to L10 (using wildcards)</td><td>~620–640</td><td>A long-term goal. Even Ground modes stay fully fair in the meantime.</td></tr>
+  </table>
+  <p class="small">"Using wildcards" assumes the player turns every spare copy of the other weapons in that rarity (2:1) and the rarity below (3:1) into wildcards for this one weapon. These are about 20% faster than the v3 estimates, because the real code always gives you weapons you don't own first, then everything after that becomes copies. If that's too fast, raise the up-tier rate to 4:1 rather than touching the odds.</p>
+  <p class="small">The free-spin estimate counts the weekly chain, season track, levels and events, plus up to 8 coin spins a month for players who grind.</p>
+</section>
+
+<!-- ============ 12 WEAPONS ============ -->
+<section id="weapons">
+  <div class="num">12 — WEAPON ROSTER (20 IN YEAR 1)</div>
+  <h2>Each weapon has fixed timing. Knockback scales with rarity and level.</h2>
+  <p class="small">L1 KB = base × rarity multiplier · L10 KB = base × L10 multiplier (cap 34 since v3.8; launch-weapon numbers updated for v3.4. Post-launch rows get re-tuned on the new ladder when they're built). Weapons that don't knock back directly scale their "power stat" instead (pull distance, balance fill, drag share).</p>
+  <table>
+    <tr><th>Weapon</th><th>Rarity</th><th>Range</th><th>Windup</th><th>Cooldown</th><th>Base KB</th><th>L1 → L10</th><th>Identity</th><th>Ships</th></tr>
+    <tr><td><b>Boot</b></td><td class="rc">Common · FREE</td><td>6.5 st</td><td>0.12 s</td><td>2.4 s</td><td>14</td><td>14.0 → 17.8</td><td>The skill floor; levels by merging copies</td><td>Launch</td></tr>
+    <tr><td>Boxing Gloves</td><td class="rc">Common</td><td>5.5 st</td><td>0.08 s</td><td>0.7 s/jab</td><td>5.5/5.5/15</td><td>15 → 19.1 (3rd hit; v5.5: was 16; v5.9: jab 6 → 5.5)</td><td>3-hit combo within 1.5 s</td><td>Launch</td></tr>
+    <tr><td>Big Boot</td><td class="rc">Common</td><td>6 st</td><td>0.26 s</td><td>2.3 s</td><td>13 + 14 up</td><td>13 → 16.5 (+18 up; v5.9: was 12 / 0.3 s / 2.5 s)</td><td>Launcher; bad landings</td><td>Launch</td></tr>
+    <tr><td>Slingshot</td><td class="ru">Uncommon</td><td>40 st projectile</td><td>0.17 s</td><td>2.1 s (v1.0: was 2.2)</td><td>13</td><td>14.6 → 18.5 (v5.9: was 11 / 2.8 s)</td><td>Lead your shots</td><td>Launch</td></tr>
+    <tr><td>Baseball Bat</td><td class="ru">Uncommon</td><td>7 st, 120°</td><td>0.26 s</td><td>3.7 s</td><td>15</td><td>16.8 → 21.3 (v5.9: cd was 3.0 s)</td><td>Hits 3 targets; deflects projectiles</td><td>Launch</td></tr>
+    <tr><td>Frying Pan</td><td class="rr">Rare</td><td>6 st, 360°</td><td>0.22 s</td><td>5.2 s</td><td>14</td><td>17.5 → 22.2 (v5.9: cd was 4.2 s)</td><td>Anti-dogpile; −30% speed for 0.6 s after</td><td>Launch</td></tr>
+    <tr><td>Squeaky Hammer</td><td class="re">Epic · NEW v6.3</td><td>smash spot 4.5 st ahead, 4.5 st radius</td><td>0.32 s</td><td>5.8 s</td><td>15 + 9 up</td><td>21.0 → 26.7</td><td><b>Ground smash</b>: a big toy hammer slams the floor in front of you. Up to 4 rivals on the spot pop up and away (mostly forward) and the tile under the impact starts cracking. Readable: the ground circle shows where it lands, and it's blockable/parryable like any hit.</td><td>Launch</td></tr>
+    <tr><td>Bomb Bag</td><td class="rl">Legendary</td><td>25 st throw, 7 st blast</td><td>1.2 s fuse</td><td>6.5 s (v1.0: back from 6.3; v5.9: 8 → 6.5)</td><td>16</td><td>24.0 → 30.5</td><td>Big blast; breaks already-cracked tiles</td><td>Launch</td></tr>
+    <tr><td>Magnet</td><td class="rm">Mythic (v6.3, was Epic)</td><td>18 st pull · 9 st repel cone</td><td>0.22 s pull · 0.1 s repel</td><td>6.0 s per cycle (was 4.8)</td><td>13 pull + 14 repel</td><td>pull 20.8 → 26.4 · repel 22.4 → 28.4</td><td><b>Push + pull</b> (v6.1): click to pull one rival in, click again within 2 s for a REPEL blast that knocks up to 3 rivals in a wide cone straight away from you. v6.2: the repel always hits the rival you just pulled, plus anyone within 5 st at any angle. v6.3: <b>Mythic</b>, because it's the only weapon with two powers; repel KB 13.5 → 14 and the cycle 4.8 → 6.0 s keep it in the Mythic band below the Void Hook. Red pole pulls, blue pole pushes.</td><td>Launch</td></tr>
+    <tr><td>Void Hook</td><td class="rm">Mythic</td><td>18 st tether</td><td>0.36 s</td><td>5.5 s (v6.3: was 5.8)</td><td>17 slam</td><td>27.2 → 34.0 (cap)</td><td>Yanks the target to you, then slams them away 0.45 s later (v3.8 nerf). Parry cancels it. v5.9: windup 0.4 → 0.36, cone 0.6 → 0.55, cooldown 9 → 5.8 s (it had the lowest pressure of all nine).</td><td>Launch</td></tr>
+    <tr><td>Water Hose</td><td class="rr">Rare</td><td>14 st, 20° cone</td><td>—</td><td>6 s</td><td>1.5/tick</td><td>1.7 → 2.3/tick</td><td>Fills balance meter; 0.8 s stumble</td><td>v1.4 · +25</td></tr>
+    <tr><td>Grappling Hook</td><td class="re">Epic</td><td>30 st</td><td>0.2 s</td><td>7 s</td><td>6</td><td>7.4 → 9.6</td><td>Mobility escape</td><td>v1.5 · +35</td></tr>
+    <tr><td>Spring Gauntlet</td><td class="re">Epic</td><td>6 st</td><td>Hold 0.2–0.8 s</td><td>4 s</td><td>7–17</td><td>21.1 → 27.2 (full charge)</td><td>Charge punch; you're slow while charging</td><td>v2.1 · +70</td></tr>
+    <tr><td>Mega Fan</td><td class="rl">Legendary</td><td>16 st, 45° cone</td><td>0.4 s</td><td>9 s</td><td>3/tick</td><td>4.0 → 5.0/tick</td><td>Pushes many; you can't move while fanning</td><td>v2.3 · +98</td></tr>
+    <tr><td>Banana Peel</td><td class="ru">Uncommon</td><td>Placed trap, max 2</td><td>0.2 s</td><td>6 s</td><td>8 slide</td><td>8.6 → 11.5 slide</td><td>Slip in the direction you're facing</td><td>v3.1 · +126</td></tr>
+    <tr><td>Pogo Hammer</td><td class="rr">Rare</td><td>5 st slam radius</td><td>0.45 s</td><td>4.5 s</td><td>9</td><td>10.4 → 13.7</td><td>Slam, and you hop 3 studs. v6.3: too close to the Squeaky Hammer; redesign as a pure mobility hop (no slam) before it ships</td><td>v3.3 · +154</td></tr>
+    <tr><td>Tornado Jar</td><td class="rm">Mythic</td><td>Thrown vortex, 9 st</td><td>0.5 s</td><td>12 s</td><td>16 fling</td><td>22.4 → 28 (cap)</td><td>Pulls players in for 4 s, then flings them out</td><td>v4.1 · +182</td></tr>
+    <tr><td>Plunger Bow</td><td class="re">Epic</td><td>30 st</td><td>0.3 s</td><td>5 s</td><td>6 yank</td><td>7.4 → 9.6</td><td>Sticks, then yanks after 1 s</td><td>v4.3 · +210</td></tr>
+    <tr><td>Wrecking Ball</td><td class="rl">Legendary</td><td>8 st orbit</td><td>0.4 s</td><td>9 s</td><td>12</td><td>15.8 → 20.2</td><td>2 s orbiting flail</td><td>v5.2 · +252</td></tr>
+    <tr><td>Thunder Glove</td><td class="rl">Legendary</td><td>10 st chain</td><td>0.3 s</td><td>8 s</td><td>10/7/5</td><td>13.2 → 16.8 (1st target)</td><td>Chains to 3 targets</td><td>v6.1 · +294</td></tr>
+    <tr><td>Snowball Cannon</td><td class="rr">Rare</td><td>35 st projectile</td><td>0.2 s</td><td>2.2 s</td><td>7</td><td>8.1 → 10.6</td><td>−20% speed for 1.5 s; winter launch</td><td>v6.3 · +322</td></tr>
+  </table>
+  <p class="small">Year 1 count by rarity: Common 3 · Uncommon 3 · Rare 4 · Epic 4 · Legendary 4 · Mythic 2. Every rarity has a weapon from Day 0.</p>
+</section>
+
+<!-- ============ 13 FAIRNESS ============ -->
+<section id="fair">
+  <div class="num">13 — POWER FAIRNESS</div>
+  <h2>Power you can earn, and limits you can trust.</h2>
+  <div class="grid g3">
+    <div class="card"><h4>Power Rating (PWR)</h4><p>Your equipped multiplier × 100 (100–216). Shown on your nameplate as a small number in a rarity-coloured badge.</p></div>
+    <div class="card"><h4>Matchmaking brackets</h4><p>Rookie (account level &lt;8 or PWR ≤120) · Standard (121–160) · Elite (161+). Matchmaking looks in your bracket for 15 s, then widens by one bracket. Brackets only switch on above about 2,000 concurrent players. Below that, bots and crates do the balancing.</p></div>
+    <div class="card"><h4>Even Ground modes</h4><p>Duel, Ranked and Shove-Only weekends ignore rarity and level: every weapon runs at ×1.20. Competitive play stays pure skill.</p></div>
+    <div class="card"><h4>Underdog bonus</h4><p>+10% coins for every 10 PWR you're below the lobby average (max +30%).</p></div>
+    <div class="card"><h4>Giant Slayer</h4><p>Knock out a player with 30+ more PWR than you: +3 coins and +50 MatchScore, with a special kill-feed banner.</p></div>
+    <div class="card"><h4>Crates</h4><p>Always spawn at the lobby's <b>average</b> PWR, so low-power players can grab a temporary upgrade.</p></div>
+  </div>
+  <div class="warn"><b>Policy:</b> if PolicyService reports that paid random items are restricted for a player, Robux spin purchases are hidden. Earned spins, coin spins, wildcards and Boot Training stay available, so every level is still reachable without paying.</div>
+</section>
+
+<!-- ============ 14 BOTS ============ -->
+<section id="bots">
+  <div class="num">14 — BOT SYSTEM (LEAGUE DRONES)</div>
+  <h2>Twelve seats, matched to the lobby's power.</h2>
+  <div class="grid g2">
+    <div class="card">
+      <h4>Rules</h4>
+      <ul>
+        <li>Bots fill up to 12 seats (bots = 12 − humans).</li>
+        <li>11 custom R15 3D characters: CRUMBLEBOT, TILE_TINA, EDGE_LORD, PAN_PETE, VOID_VI, GRID_GUS, SHOVE_SAM, RIM_RITA, DROP_DEX, CRACK_KAI, LEDGE_LOU.</li>
+        <li><b>They can use any weapon.</b> Weapon pools by difficulty: Easy (Commons and Uncommons), Medium (+ Rare and Epic), Hard (all).</li>
+        <li><b>Bot PWR</b> = lobby average ±10, never above the highest human. At most one Legendary or Mythic bot per lobby.</li>
+        <li>A behaviour profile for each weapon: Slingshot kites, Pan waits for crowds, Void Hook checks the landing tile, and so on.</li>
+      </ul>
+    </div>
+    <table>
+      <tr><th>Setting</th><th>Easy</th><th>Medium</th><th>Hard</th></tr>
+      <tr><td>Lobby level</td><td>&lt;10</td><td>10–34</td><td>35+</td></tr>
+      <tr><td>Reaction delay</td><td>0.55 s</td><td>0.35 s</td><td>0.20 s</td></tr>
+      <tr><td>Aggression</td><td>25%</td><td>50%</td><td>75%</td></tr>
+      <tr><td>Block / parry</td><td>10% / 0%</td><td>30% / 10%</td><td>50% / 25%</td></tr>
+      <tr><td>Rush</td><td>5%</td><td>20%</td><td>40%</td></tr>
+      <tr><td>Crate interest</td><td>30%</td><td>55%</td><td>75%</td></tr>
+      <tr><td>Tile lookahead</td><td>1</td><td>2</td><td>3</td></tr>
+      <tr><td>Max bots per target</td><td>1</td><td>2</td><td>2</td></tr>
+    </table>
+  </div>
+  <p>Bots think every 0.35 s plus their reaction delay, and target rivals within 26 studs. If nobody is in reach, they search for a safe tile in a local 18×18 patch. Difficulty in a lobby is mixed: 50% at the lobby tier and 25% each a tier below and above.</p>
+  <table>
+    <tr><th>Reward</th><th>Human KO</th><th>Bot KO</th></tr>
+    <tr><td>Coins</td><td>5 (max 25 per round)</td><td>2 (max 10 per round)</td></tr>
+    <tr><td>MatchScore / XP</td><td>+100 / +20</td><td>+40 / +10</td></tr>
+    <tr><td>Quests / KO leaderboard</td><td>Yes / Yes</td><td>Yes / No</td></tr>
+  </table>
+  <p class="small">Anti-farm: placement coins ×0.67 in lobbies with 1–3 humans. Wins only count for the Wins leaderboard when 4 or more humans started the round.</p>
+</section>
+
+<!-- ============ 15 ECONOMY ============ -->
+<section id="economy">
+  <div class="num">15 — ECONOMY</div>
+  <h2>Coins in, coins out.</h2>
+  <div class="grid g2">
+    <table>
+      <tr><th>Coins per round</th><th>Amount</th></tr>
+      <tr><td>Survival</td><td>1 per 10 s (max 18)</td></tr>
+      <tr><td>1st / 2nd / 3rd</td><td>60 / 30 / 15</td></tr>
+      <tr><td>Timeout survivor</td><td>30 each</td></tr>
+      <tr><td>Human KO / bot KO</td><td>5 (max 25) / 2 (max 10)</td></tr>
+      <tr><td>Giant Slayer</td><td>+3</td></tr>
+      <tr><td><b>Round cap</b></td><td><b>120</b> (240 with the boost)</td></tr>
+      <tr><td>First win of the day</td><td>+100 (outside the cap)</td></tr>
+    </table>
+    <table>
+      <tr><th>Coin sinks</th><th>Cost</th></tr>
+      <tr><td>Merge one weapon L1→10</td><td>12,900</td></tr>
+      <tr><td>Boot Training L1→10</td><td>16,000</td></tr>
+      <tr><td>Coin spin (max 2/week)</td><td>3,000</td></tr>
+      <tr><td>Cosmetic shop (v1.2)</td><td>500–5,000</td></tr>
+      <tr><td>Crew creation (v5.3)</td><td>2,500</td></tr>
+    </table>
+  </div>
+  <div class="grid g3">
+    <div class="card"><div class="k">Average player</div><div class="big">~350/hr</div></div>
+    <div class="card"><div class="k">Skilled player</div><div class="big">~1,000/hr</div></div>
+    <div class="card"><div class="k">XP per level</div><div class="big">400 + 120×(L−1)</div><p>Max level 100. Levels unlock cosmetics; L2, L3 and every 5 levels give a spin (v5.6). <b>Account level never gives power.</b></p></div>
+  </div>
+</section>
+
+<!-- ============ 16 SPINS ============ -->
+<section id="spins">
+  <div class="num">16 — SPINS, PITY &amp; PRODUCTS</div>
+  <h2>Rare, honest, visible.</h2>
+  <div class="grid g2">
+    <div class="card">
+      <h4>Spin rules</h4>
+      <ul>
+        <li>Odds: C 55 · U 26 · R 12 · E 5 · L 1.6 · M 0.4%. The Boot is not in the pool.</li>
+        <li>Pity: Epic+ every 20 · Legendary+ every 60 · Mythic every 200. Always visible.</li>
+        <li>Within a rarity, <b>weapons you don't own come first</b>. Once you own them all, results become copies (or a tier skin 25% of the time).</li>
+        <li>Free spins: starter quests +1 · L2, L3 and every 5 levels +1 · all 3 dailies +1/day · weekly chain +1 · season track +4 · events (v5.6).</li>
+        <li>Coin spin: 1,500 coins, max 3 per week (v5.6; was 3,000 ×2).</li>
+        <li><s>Free spin timer (v6.4)</s> <b>removed in v6.6</b>, replaced by the hourly coin spin (1,000 coins, no weekly cap; economy sim: 28.6 spins in week 1, 75.6 by day 30).<br><b>Old v6.4 note:</b> 1 free spin every 6 h of real time, also while offline. It waits when ready (no stacking), and the next timer starts on claim. Same odds and pity as any spin. Economy sim (claimed ~1.5×/day): 6.3 spins on day 1 (was 4.9), 31 in week 1 (was 21); the best rarity at day 7 is still Epic.</li>
+        <li><b>Paid timer help (v6.5, re-aimed at the coin spin in v6.6; FAST COIN SPINS R$149 = every 30 min):</b> SKIP TIMER (R$25, capped at 3 a day so it can't replace the spin packs) and the FAST FREE SPINS pass (every 3 h). Both only speed up spins that every player gets anyway.</li>
+      </ul>
+    </div>
+    <table>
+      <tr><th>Product</th><th>Gives</th><th>R$</th></tr>
+      <tr><td>Spin ×1</td><td>1 spin</td><td>49</td></tr>
+      <tr><td>Spin ×5</td><td>5 spins</td><td>199</td></tr>
+      <tr><td>Spin ×12</td><td>12 spins</td><td>449</td></tr>
+      <tr><td>Coins 500</td><td>500</td><td>25</td></tr>
+      <tr><td>Coins 2,500</td><td>2,500</td><td>99</td></tr>
+      <tr><td>2× Coins, 30 min</td><td>Doubles coins and the cap</td><td>49</td></tr>
+      <tr><td>Season Pass (concept, v1.2)</td><td>Premium lane per season: 8 spins, 4,900 coins, 11 wildcards, 3 boosts, 5 cosmetics (section 19)</td><td>399 / season</td></tr>
+    </table>
+  </div>
+  <div class="warn">Show exact odds and pity before every paid spin, run the PolicyService check, never prompt on death, results or onboarding screens, keep a remote kill switch, test receipt replay and save failure, and save the profile <b>before</b> acknowledging a receipt.</div>
+</section>
+
+<!-- ============ 17 ART ============ -->
+<section id="art">
+  <div class="num">17 — ART &amp; 3D REQUIREMENTS</div>
+  <h2>Premium stylized 3D, not pastel low-poly.</h2>
+  <table>
+    <tr><th>Asset</th><th>Requirement</th><th>Triangles</th><th>Textures</th></tr>
+    <tr><td>Floor tile</td><td>Shared MeshPart per world, 3 crack stages, 4 pooled debris chunks</td><td>≤300</td><td>512² atlas</td></tr>
+    <tr><td>Weapon (per rarity look)</td><td>Custom mesh, 3 LODs, rarity shader, L4/L7/L10 visual stages, Ascended L10 variant</td><td>≤4,000</td><td>1024² PBR</td></tr>
+    <tr><td>Bot character</td><td>11 unique R15 designs</td><td>≤10,000</td><td>1024² PBR</td></tr>
+    <tr><td>Hub (the Yard)</td><td>Forge, Spin Vault, portals, Hall of Falls statues</td><td>≤300k streamed</td><td>2048² max</td></tr>
+    <tr><td>World set pieces</td><td>Backdrop pieces, streamed, non-colliding</td><td>≤250k visible</td><td>2048² max</td></tr>
+  </table>
+  <p><b>Rendering:</b> Future lighting, Atmosphere, Bloom, ColorCorrection, SunRays, SurfaceAppearance PBR. <b>Readability:</b> amber, then red, is reserved for cracks. Gold is for crates and winners. Rarity colours appear only on weapons and kill-feed icons. <b>Performance target:</b> 60 FPS on PC and 30+ on mid-range mobile with 12 players.</p>
+</section>
+
+<!-- ============ 18 TECH ============ -->
+<section id="tech">
+  <div class="num">18 — TECH ARCHITECTURE &amp; ANTI-EXPLOIT</div>
+  <h2>The server owns everything that matters.</h2>
+  <table>
+    <tr><th>Service</th><th>Responsibility</th></tr>
+    <tr><td>RoundService</td><td>State machine: Intermission → Flyover → Live → SuddenDeath → Results</td></tr>
+    <tr><td>ArenaService</td><td>Tile state (healthy/warned/cracked/fallen), collapse scheduler, tile pooling, hazard hooks per world</td></tr>
+    <tr><td>CombatService</td><td>The client sends intent only. The server checks cooldown, range and line of sight, and computes the final KB (rarity + level + decay + cap).</td></tr>
+    <tr><td>KnockbackApply</td><td>The victim's client applies the impulse (it owns its own physics). The server checks the displacement is within tolerance and flags repeated "no-knockback" mismatches.</td></tr>
+    <tr><td>InventoryService</td><td>Session-locked profiles (ProfileStore pattern): weapons, levels, copies, coins, spins</td></tr>
+    <tr><td>SpinService / MergeService</td><td>Server RNG, pity counters and atomic merges (copies and coins are taken off and the level is raised in a single save)</td></tr>
+    <tr><td>MatchmakingService</td><td>MemoryStore queues, PWR brackets, reserved servers for Duel and Ranked</td></tr>
+    <tr><td>BotService</td><td>Bot spawning, think loop, weapon behaviour profiles, PWR matching</td></tr>
+    <tr><td>Analytics</td><td>Round start/end, KO (weapon, rarity, level, PWR gap), merges, spins, FTUE steps, purchases</td></tr>
+  </table>
+  <p class="small">Anti-exploit: rate-limit every remote, speed and teleport checks, never trust KB or cooldown values from the client, and log suspicious win streaks for review.</p>
+</section>
+
+<!-- ============ 19 ROADMAP ============ -->
+<section id="roadmap">
+  <div class="num">19 — CONTENT ROADMAP &amp; SEASON PASS</div>
+  <h2>Launch day to Year 2.</h2>
+  <p><b>Launch (Day 0) = Saturday 24 October 2026.</b> A new <b>season</b> starts every 8 weeks, each with a new world, a free track for everyone and a premium <b>Season Pass</b> (concept). Holiday events sit on their real dates.</p>
+  <div class="grid g3">
+    <div class="card"><h4><span class="pill p-maj">MAJOR</span> every 8 weeks</h4><p>New world + new season (free track and Season Pass reset).</p></div>
+    <div class="card"><h4><span class="pill p-min">MINOR</span> every 10–18 days</h4><p>One headline item: a weapon, a mode or a system.</p></div>
+    <div class="card"><h4><span class="pill p-mic">MICRO</span> every 2–7 days</h4><p>Balance, fixes and weekend events. Never a new system.</p></div>
+  </div>
+
+  <h3>Year 1 at a glance</h3>
+  <table>
+    <tr><th>Season</th><th>Dates</th><th>New world</th><th>New weapons</th><th>New modes and systems</th><th>Season Pass theme</th></tr>
+    <tr><td><b>S1 · Ground Zero</b></td><td>24 Oct – 18 Dec 2026</td><td>Classic · Molten Core · Ice Rink</td><td>9 launch weapons, Water Hose, Grappling Hook</td><td>Classic, Rumble, Duel, cosmetics, Season Pass, weapon challenges</td><td>Construction site</td></tr>
+    <tr><td><b>S2 · Zero-G</b></td><td>19 Dec – 12 Feb</td><td>Orbital</td><td>Spring Gauntlet, Mega Fan</td><td>Squads preview</td><td>Astronaut</td></tr>
+    <tr><td><b>S3 · Undertow</b></td><td>13 Feb – 9 Apr</td><td>The Deep</td><td>Banana Peel, Pogo Hammer</td><td>Ranked League (Even Ground)</td><td>Deep-sea diver</td></tr>
+    <tr><td><b>S4 · Glitch</b></td><td>10 Apr – 4 Jun</td><td>Neon City</td><td>Tornado Jar (2nd Mythic), Plunger Bow</td><td>Squads permanent, private servers</td><td>Neon cyber</td></tr>
+    <tr><td><b>S5 · Sugar Rush</b></td><td>5 Jun – 30 Jul</td><td>Candy Collapse</td><td>Wrecking Ball</td><td>King of the Tile, Crews</td><td>Candy</td></tr>
+    <tr><td><b>S6 · Hammerfall</b></td><td>31 Jul – 24 Sep</td><td>Sky Forge</td><td>Thunder Glove, Snowball Cannon</td><td>Tournament weekends</td><td>Blacksmith</td></tr>
+    <tr><td><b>S7 · Mirage</b></td><td>25 Sep – Nov 2027</td><td>Desert Mirage</td><td>Year-1 anniversary weapon</td><td>Anniversary event</td><td>Desert gold</td></tr>
+  </table>
+
+  <h3>Season Pass: premium lane (concept)</h3>
+  <div class="note"><b>Status: concept only.</b> The game ships v1.0 with the <b>free track only</b> (Season tab). The Season Pass is planned for <b>v1.2 (Tue 3 Nov 2026)</b>, together with cosmetics pack 1. Nothing below is for sale yet.</div>
+  <div class="grid g3">
+    <div class="card"><h4>What you get</h4><p>A second reward lane on the same 30 tiers. It uses the <b>same Season XP</b> as the free track (the XP you earn in matches), so there is no extra grind. Season 1 lane: <b>8 spins</b>, <b>4,900 coins</b>, <b>11 wildcards</b>, <b>3 × 2× Coins boosts</b> and <b>5 cosmetics</b>.</p></div>
+    <div class="card"><h4>How it is sold</h4><p>Suggested <b>R$399 per season</b>, as a Developer Product (game passes are permanent, a season pass is not). Buy any time in the season: every premium tier you already reached unlocks at once (<b>retroactive</b>). Store value of the lane ≈ R$690 plus the cosmetics.</p></div>
+    <div class="card"><h4>Fair-play rules</h4><p>No pass-only weapons and no stat boosts: spins and wildcards give the same items free players get from spins and merging. Cosmetics never change hitboxes. Where PolicyService blocks paid random items, each spin becomes 1,000 coins.</p></div>
+  </div>
+
+  <h4>Season 1 · Ground Zero: all 30 tiers</h4>
+  <p class="small">600 Season XP per tier (about 4 rounds). Free lane = what is in the game today. <span class="rm">Purple</span> = cosmetic, <b style="color:var(--lava)">orange</b> = spin.</p>
+  <table>
+    <tr><th>Tier</th><th>Free track (in the game, everyone)</th><th>Season Pass (concept, R$399)</th></tr>
+    <tr><td>1</td><td>100 coins</td><td><span class="rm"><b>GROUND ZERO</b> nameplate title</span></td></tr>
+    <tr><td>2</td><td>110 coins</td><td>250 coins</td></tr>
+    <tr><td>3</td><td>120 coins</td><td><b style="color:var(--lava)">1 spin</b></td></tr>
+    <tr><td>4</td><td>130 coins</td><td>3 Common wildcards</td></tr>
+    <tr><td>5</td><td>2 Common wildcards</td><td>300 coins</td></tr>
+    <tr><td>6</td><td>150 coins</td><td>2× Coins boost (30 min)</td></tr>
+    <tr><td>7</td><td>160 coins</td><td><span class="ru">2 Uncommon wildcards</span></td></tr>
+    <tr><td>8</td><td><b style="color:var(--lava)">1 spin</b></td><td><b style="color:var(--lava)">1 spin</b></td></tr>
+    <tr><td>9</td><td>180 coins</td><td>350 coins</td></tr>
+    <tr><td>10</td><td><span class="ru">2 Uncommon wildcards</span></td><td><span class="rm"><b>Hazard Stripe</b> kick trail (yellow/black)</span></td></tr>
+    <tr><td>11</td><td>200 coins</td><td>400 coins</td></tr>
+    <tr><td>12</td><td>210 coins</td><td><span class="rr">1 Rare wildcard</span></td></tr>
+    <tr><td>13</td><td>220 coins</td><td><b style="color:var(--lava)">1 spin</b></td></tr>
+    <tr><td>14</td><td>230 coins</td><td>450 coins</td></tr>
+    <tr><td>15</td><td><span class="rr">1 Rare wildcard</span></td><td>2× Coins boost (30 min)</td></tr>
+    <tr><td>16</td><td><b style="color:var(--lava)">1 spin</b></td><td><span class="rr">2 Rare wildcards</span></td></tr>
+    <tr><td>17</td><td>260 coins</td><td>500 coins</td></tr>
+    <tr><td>18</td><td>270 coins</td><td><b style="color:var(--lava)">1 spin</b></td></tr>
+    <tr><td>19</td><td>280 coins</td><td>550 coins</td></tr>
+    <tr><td>20</td><td><span class="rr">2 Rare wildcards</span></td><td><span class="rm"><b>Steel Toe</b> Boot colour (grey + yellow cap)</span></td></tr>
+    <tr><td>21</td><td>300 coins</td><td><span class="re">1 Epic wildcard</span></td></tr>
+    <tr><td>22</td><td>320 coins</td><td><b style="color:var(--lava)">1 spin</b></td></tr>
+    <tr><td>23</td><td>340 coins</td><td>600 coins</td></tr>
+    <tr><td>24</td><td><b style="color:var(--lava)">1 spin</b></td><td>2× Coins boost (30 min)</td></tr>
+    <tr><td>25</td><td><span class="re">1 Epic wildcard</span></td><td><span class="re">1 Epic wildcard</span></td></tr>
+    <tr><td>26</td><td>380 coins</td><td>700 coins</td></tr>
+    <tr><td>27</td><td>400 coins</td><td><b style="color:var(--lava)">1 spin</b></td></tr>
+    <tr><td>28</td><td>450 coins</td><td>800 coins</td></tr>
+    <tr><td>29</td><td>500 coins</td><td><span class="rl">1 Legendary wildcard</span></td></tr>
+    <tr><td>30</td><td><b style="color:var(--lava)">1 spin</b></td><td><span class="rm"><b>Golden Ground Zero</b> Boot colour + gold nameplate frame + 2 spins</span></td></tr>
+    <tr><td><b>Total</b></td><td><b>5,310 coins · 4 spins · 8 wildcards</b> (2 C, 2 U, 3 R, 1 E)</td><td><b>4,900 coins · 8 spins · 11 wildcards</b> (3 C, 2 U, 3 R, 2 E, 1 L) · 3 boosts · 5 cosmetics</td></tr>
+  </table>
+
+  <h4>Season Pass cosmetics, season by season</h4>
+  <table>
+    <tr><th>Season</th><th>Tier 1 title</th><th>Tier 10 kick trail</th><th>Tier 20 Boot colour</th><th>Tier 30 finale</th></tr>
+    <tr><td>S1 · Ground Zero</td><td>GROUND ZERO</td><td>Hazard Stripe</td><td>Steel Toe</td><td>Golden Ground Zero Boot + gold frame</td></tr>
+    <tr><td>S2 · Zero-G</td><td>ZERO-G</td><td>Stardust</td><td>Moon Boot</td><td>Astronaut Boot + star frame</td></tr>
+    <tr><td>S3 · Undertow</td><td>UNDERTOW</td><td>Bubble Stream</td><td>Coral Reef</td><td>Deep Diver Boot + pearl frame</td></tr>
+    <tr><td>S4 · Glitch</td><td>GLITCH</td><td>Pixel Static</td><td>Neon Grid</td><td>Hologram Boot + glitch frame</td></tr>
+    <tr><td>S5 · Sugar Rush</td><td>SUGAR RUSH</td><td>Sprinkles</td><td>Candy Stripe</td><td>Gummy Boot + frosting frame</td></tr>
+    <tr><td>S6 · Hammerfall</td><td>HAMMERFALL</td><td>Ember Sparks</td><td>Forged Iron</td><td>Molten Anvil Boot + rivet frame</td></tr>
+    <tr><td>S7 · Mirage</td><td>MIRAGE</td><td>Sand Swirl</td><td>Desert Gold</td><td>Sun Idol Boot + anniversary frame</td></tr>
+  </table>
+  <p class="small">Every season keeps the same lane shape: title at 1, trail at 10, Boot colour at 20, finale at 30, with coins, spins, wildcards and boosts in between. Only the theme and the coin amounts change.</p>
+
+  <h3>Year 1, update by update</h3>
+  <table>
+    <tr><th>Day</th><th>Date</th><th>Version</th><th>Type</th><th>Contents</th></tr>
+
+    <tr class="phase"><td colspan="5">Season 1 · Ground Zero</td></tr>
+    <tr class="major"><td>0</td><td>Sat 24 Oct 2026</td><td><b>v1.0</b></td><td><span class="pill p-maj">MAJOR</span></td><td><b>LAUNCH.</b> Classic · Molten Core · Ice Rink. 9 weapons (one or more per rarity), rarity power, merge to L10 (every weapon, the Boot included, upgrades only by merging). Classic and Rumble. Bots to 12. Levels 1–100, FTUE, starter quests, weekly chain, Season 1 free track, all products.</td></tr>
+    <tr class="micro"><td>+2</td><td>Mon 26 Oct</td><td>v1.0.1</td><td><span class="pill p-mic">MICRO</span></td><td>Hotfixes, plus tuning at the Win-Share thresholds.</td></tr>
+    <tr class="micro"><td>+4</td><td>Wed 28 Oct</td><td>v1.0.2</td><td><span class="pill p-mic">MICRO</span><span class="pill p-evt">EVENT</span></td><td><b>First Fall</b> community goal (10 million falls unlocks a free "Launch" Boot skin for everyone) and 2× XP weekend. Plus <b>Fright Weekend</b> (Halloween, 30 Oct – 1 Nov): pumpkin lanterns in the Yard and a free Pumpkin Boot skin from a quest.</td></tr>
+    <tr class="minor"><td>+7</td><td>Sat 31 Oct</td><td><b>v1.1</b></td><td><span class="pill p-min">MINOR</span><span class="pill p-sys">MODE</span></td><td><b>Duel</b>: 1v1 best of three on Even Ground, plus Duel leaderboard season 1.</td></tr>
+    <tr class="minor"><td>+10</td><td>Tue 3 Nov</td><td><b>v1.2</b></td><td><span class="pill p-min">MINOR</span></td><td><b>Cosmetics pack 1</b> (~24 skins, trails, emotes and titles), <b>Season Pass</b> premium lane (retroactive, see the Season Pass concept above), coin shop.</td></tr>
+    <tr class="micro"><td>+14</td><td>Sat 7 Nov</td><td>v1.2.1</td><td><span class="pill p-mic">MICRO</span></td><td>Balance patch. Map spotlight: Molten Core bounty.</td></tr>
+    <tr class="minor"><td>+18</td><td>Wed 11 Nov</td><td><b>v1.3</b></td><td><span class="pill p-min">MINOR</span><span class="pill p-sys">SYSTEM</span></td><td><b>Weapon Challenges</b>: per-weapon quest lines that pay copies, plus 30 achievements and badges.</td></tr>
+    <tr class="micro"><td>+21</td><td>Sat 14 Nov</td><td>v1.3.1</td><td><span class="pill p-mic">MICRO</span><span class="pill p-evt">EVENT</span></td><td>48-hour <b>Shove-Only</b> (Boot for everyone, Even Ground).</td></tr>
+    <tr class="minor"><td>+25</td><td>Wed 18 Nov</td><td><b>v1.4</b></td><td><span class="pill p-min">MINOR</span><span class="pill p-wpn">WEAPON</span></td><td><b class="rr">Water Hose</b> (Rare) and cosmetic pack 2.</td></tr>
+    <tr class="micro"><td>+30</td><td>Mon 23 Nov</td><td>v1.4.1</td><td><span class="pill p-mic">MICRO</span><span class="pill p-evt">EVENT</span></td><td><b>Feast Week</b> (US Thanksgiving, 26–29 Nov): 2× coin weekend and a free Drumstick emote from quests.</td></tr>
+    <tr class="minor"><td>+35</td><td>Sat 28 Nov</td><td><b>v1.5</b></td><td><span class="pill p-min">MINOR</span><span class="pill p-wpn">WEAPON</span></td><td><b class="re">Grappling Hook</b> (Epic) and leaderboard reset.</td></tr>
+    <tr class="micro"><td>+42</td><td>Sat 5 Dec</td><td>v1.5.1</td><td><span class="pill p-mic">MICRO</span><span class="pill p-evt">EVENT</span></td><td>Rumble weekend and a merge-cost −25% weekend.</td></tr>
+    <tr class="micro"><td>+49</td><td>Sat 12 Dec</td><td>v1.5.2</td><td><span class="pill p-mic">MICRO</span></td><td><b>Orbital teaser</b>: a satellite crashes into the Yard and a gravity-glitch test playlist appears.</td></tr>
+
+    <tr class="phase"><td colspan="5">Season 2 · Zero-G</td></tr>
+    <tr class="major"><td>+56</td><td>Sat 19 Dec</td><td><b>v2.0</b></td><td><span class="pill p-maj">MAJOR</span></td><td><b>CRUMBLE: ORBITAL</b>. Space-station world, gravity flips every 40 s, airlock vents. Astronaut cosmetics family, Season 2 track, 15 new Foreman lines.</td></tr>
+    <tr class="micro"><td>+60</td><td>Wed 23 Dec</td><td>v2.0.1</td><td><span class="pill p-mic">MICRO</span><span class="pill p-evt">EVENT</span></td><td><b>Frostfall</b> winter event (23 Dec – 3 Jan): snow on every map, Ice Rink spotlight, gift spin, and a New Year fireworks finale in the Yard on 31 Dec.</td></tr>
+    <tr class="micro"><td>+63</td><td>Sat 26 Dec</td><td>v2.0.2</td><td><span class="pill p-mic">MICRO</span><span class="pill p-evt">EVENT</span></td><td>Low-Gravity weekend in every world.</td></tr>
+    <tr class="minor"><td>+70</td><td>Sat 2 Jan 2027</td><td><b>v2.1</b></td><td><span class="pill p-min">MINOR</span><span class="pill p-wpn">WEAPON</span></td><td><b class="re">Spring Gauntlet</b> (Epic), charge punch.</td></tr>
+    <tr class="micro"><td>+77</td><td>Sat 9 Jan</td><td>v2.1.1</td><td><span class="pill p-mic">MICRO</span><span class="pill p-evt">EVENT</span></td><td>New-term comeback weekend (schools restart): 2× XP and a quest refresh.</td></tr>
+    <tr class="minor"><td>+84</td><td>Sat 16 Jan</td><td><b>v2.2</b></td><td><span class="pill p-min">MINOR</span><span class="pill p-sys">MODE</span></td><td><b>Squads preview weekend</b> (4 teams of 3).</td></tr>
+    <tr class="micro"><td>+91</td><td>Sat 23 Jan</td><td>v2.2.1</td><td><span class="pill p-mic">MICRO</span></td><td>Squads feedback fixes, balance patch, Orbital spotlight.</td></tr>
+    <tr class="minor"><td>+98</td><td>Sat 30 Jan</td><td><b>v2.3</b></td><td><span class="pill p-min">MINOR</span><span class="pill p-wpn">WEAPON</span></td><td><b class="rl">Mega Fan</b> (Legendary).</td></tr>
+    <tr class="micro"><td>+105</td><td>Sat 6 Feb</td><td>v2.3.1</td><td><span class="pill p-mic">MICRO</span></td><td><b>Deep teaser</b>: the Yard slowly floods over the week.</td></tr>
+    <tr class="micro"><td>+107</td><td>Mon 8 Feb</td><td>v2.3.2</td><td><span class="pill p-mic">MICRO</span><span class="pill p-evt">EVENT</span></td><td><b>Lantern Nights</b> (Ramadan, ~8 Feb – 9 Mar): lantern-lit night versions of every map, a free lantern trail from quests, and an evening 2× coin hour.</td></tr>
+
+    <tr class="phase"><td colspan="5">Season 3 · Undertow</td></tr>
+    <tr class="major"><td>+112</td><td>Sat 13 Feb</td><td><b>v3.0</b></td><td><span class="pill p-maj">MAJOR</span></td><td><b>CRUMBLE: DEEP</b>. Sunken ruins, rising water that slows you and lifts you off tiles. Diver cosmetics, bioluminescent trails, Season 3.</td></tr>
+    <tr class="micro"><td>+119</td><td>Sat 20 Feb</td><td>v3.0.1</td><td><span class="pill p-mic">MICRO</span></td><td>Water-physics tuning and Deep spotlight.</td></tr>
+    <tr class="minor"><td>+126</td><td>Sat 27 Feb</td><td><b>v3.1</b></td><td><span class="pill p-min">MINOR</span><span class="pill p-wpn">WEAPON</span></td><td><b class="ru">Banana Peel</b> (Uncommon).</td></tr>
+    <tr class="micro"><td>+133</td><td>Sat 6 Mar</td><td>v3.1.1</td><td><span class="pill p-mic">MICRO</span></td><td>Balance patch and Ranked beta invites.</td></tr>
+    <tr class="micro"><td>+137</td><td>Wed 10 Mar</td><td>v3.1.2</td><td><span class="pill p-mic">MICRO</span><span class="pill p-evt">EVENT</span></td><td><b>Eid celebration</b> (~10 Mar): free Eid emote, 2× XP weekend, gift spin for completing the Lantern Nights quests.</td></tr>
+    <tr class="minor"><td>+140</td><td>Sat 13 Mar</td><td><b>v3.2</b></td><td><span class="pill p-min">MINOR</span><span class="pill p-sys">MODE</span></td><td><b>Ranked League</b>: Even Ground, 6 divisions, season rewards (cosmetic only).</td></tr>
+    <tr class="micro"><td>+147</td><td>Sat 20 Mar</td><td>v3.2.1</td><td><span class="pill p-mic">MICRO</span><span class="pill p-evt">EVENT</span></td><td>Ranked launch fixes and a Season 3 2× XP weekend.</td></tr>
+    <tr class="minor"><td>+154</td><td>Sat 27 Mar</td><td><b>v3.3</b></td><td><span class="pill p-min">MINOR</span><span class="pill p-wpn">WEAPON</span><span class="pill p-evt">EVENT</span></td><td><b class="rr">Pogo Hammer</b> (Rare), plus the spring <b>Egg Drop</b> weekend (Easter, 27–28 Mar): hidden eggs on maps pay cosmetic tokens.</td></tr>
+    <tr class="micro"><td>+161</td><td>Sat 3 Apr</td><td>v3.3.1</td><td><span class="pill p-mic">MICRO</span></td><td><b>Neon teaser</b>: holograms flicker across the Yard.</td></tr>
+
+    <tr class="phase"><td colspan="5">Season 4 · Glitch</td></tr>
+    <tr class="major"><td>+168</td><td>Sat 10 Apr</td><td><b>v4.0</b></td><td><span class="pill p-maj">MAJOR</span></td><td><b>CRUMBLE: NEON CITY</b>. Rainy rooftops, fake hologram tiles. Cyber cosmetics, Season 4, <b>Squads becomes permanent</b>.</td></tr>
+    <tr class="micro"><td>+175</td><td>Sat 17 Apr</td><td>v4.0.1</td><td><span class="pill p-mic">MICRO</span><span class="pill p-evt">EVENT</span></td><td>Squads 2× XP weekend.</td></tr>
+    <tr class="minor"><td>+182</td><td>Sat 24 Apr</td><td><b>v4.1</b></td><td><span class="pill p-min">MINOR</span><span class="pill p-wpn">WEAPON</span></td><td><b class="rm">Tornado Jar</b> (Mythic #2) with a launch-week showcase in Rumble.</td></tr>
+    <tr class="micro"><td>+189</td><td>Sat 1 May</td><td>v4.1.1</td><td><span class="pill p-mic">MICRO</span></td><td>Mythic balance review and spotlight rotation.</td></tr>
+    <tr class="minor"><td>+196</td><td>Sat 8 May</td><td><b>v4.2</b></td><td><span class="pill p-min">MINOR</span><span class="pill p-sys">SYSTEM</span></td><td><b>Private servers and custom matches</b> (collapse speed, mode, Even Ground toggle).</td></tr>
+    <tr class="micro"><td>+203</td><td>Sat 15 May</td><td>v4.2.1</td><td><span class="pill p-mic">MICRO</span><span class="pill p-evt">EVENT</span></td><td><b>Eid al-Adha</b> (~16 May): free cosmetic gift and a 2× coin weekend.</td></tr>
+    <tr class="minor"><td>+210</td><td>Sat 22 May</td><td><b>v4.3</b></td><td><span class="pill p-min">MINOR</span><span class="pill p-wpn">WEAPON</span></td><td><b class="re">Plunger Bow</b> (Epic).</td></tr>
+    <tr class="micro"><td>+217</td><td>Sat 29 May</td><td>v4.3.1</td><td><span class="pill p-mic">MICRO</span><span class="pill p-evt">EVENT</span></td><td><b>"Last Skate"</b> farewell event: Ice Rink is retired next update (the 6-active-world rule).</td></tr>
+
+    <tr class="phase"><td colspan="5">Season 5 · Sugar Rush</td></tr>
+    <tr class="major"><td>+224</td><td>Sat 5 Jun</td><td><b>v5.0</b></td><td><span class="pill p-maj">MAJOR</span></td><td><b>CRUMBLE: CANDY COLLAPSE</b>. Sticky tiles and fast-cracking sugar tiles. Sweets cosmetics, Season 5. Ice Rink retired (comes back as a throwback weekend).</td></tr>
+    <tr class="micro"><td>+231</td><td>Sat 12 Jun</td><td>v5.0.1</td><td><span class="pill p-mic">MICRO</span><span class="pill p-evt">EVENT</span></td><td><b>Summer Splash</b> kick-off (summer break): water-balloon crates and beach skins.</td></tr>
+    <tr class="minor"><td>+238</td><td>Sat 19 Jun</td><td><b>v5.1</b></td><td><span class="pill p-min">MINOR</span><span class="pill p-sys">MODE</span></td><td><b>King of the Tile</b> mode.</td></tr>
+    <tr class="minor"><td>+252</td><td>Sat 3 Jul</td><td><b>v5.2</b></td><td><span class="pill p-min">MINOR</span><span class="pill p-wpn">WEAPON</span></td><td><b class="rl">Wrecking Ball</b> (Legendary).</td></tr>
+    <tr class="minor"><td>+266</td><td>Sat 17 Jul</td><td><b>v5.3</b></td><td><span class="pill p-min">MINOR</span><span class="pill p-sys">SYSTEM</span></td><td><b>Crews</b>: clubs of up to 20, crew tags, weekly crew leaderboard and crew quests.</td></tr>
+    <tr class="micro"><td>+273</td><td>Sat 24 Jul</td><td>v5.3.1</td><td><span class="pill p-mic">MICRO</span></td><td><b>Sky Forge teaser</b>: hammer strikes shake the Yard.</td></tr>
+
+    <tr class="phase"><td colspan="5">Season 6 · Hammerfall</td></tr>
+    <tr class="major"><td>+280</td><td>Sat 31 Jul</td><td><b>v6.0</b></td><td><span class="pill p-maj">MAJOR</span></td><td><b>CRUMBLE: SKY FORGE</b>. A floating foundry with conveyor tiles and row-shoving hammer pistons. Smith cosmetics, Season 6. The lowest-played world is retired.</td></tr>
+    <tr class="micro"><td>+287</td><td>Sat 7 Aug</td><td>v6.0.1</td><td><span class="pill p-mic">MICRO</span><span class="pill p-evt">EVENT</span></td><td>Summer finale: Rumble and 2× XP weekend.</td></tr>
+    <tr class="minor"><td>+294</td><td>Sat 14 Aug</td><td><b>v6.1</b></td><td><span class="pill p-min">MINOR</span><span class="pill p-wpn">WEAPON</span></td><td><b class="rl">Thunder Glove</b> (Legendary).</td></tr>
+    <tr class="minor"><td>+308</td><td>Sat 28 Aug</td><td><b>v6.2</b></td><td><span class="pill p-min">MINOR</span><span class="pill p-sys">SYSTEM</span></td><td><b>Tournament Weekends</b>: brackets, creator cups, spectator mode. Back-to-school weekend bonus and quest refresh.</td></tr>
+    <tr class="minor"><td>+322</td><td>Sat 11 Sep</td><td><b>v6.3</b></td><td><span class="pill p-min">MINOR</span><span class="pill p-wpn">WEAPON</span></td><td><b class="rr">Snowball Cannon</b> (Rare).</td></tr>
+    <tr class="micro"><td>+329</td><td>Sat 18 Sep</td><td>v6.3.1</td><td><span class="pill p-mic">MICRO</span></td><td><b>Mirage teaser</b>: sand drifts into the Yard.</td></tr>
+
+    <tr class="phase"><td colspan="5">Season 7 · Mirage</td></tr>
+    <tr class="major"><td>+336</td><td>Sat 25 Sep</td><td><b>v7.0</b></td><td><span class="pill p-maj">MAJOR</span></td><td><b>CRUMBLE: DESERT MIRAGE</b>. Sinking sand tiles and sandstorms that push sideways. Desert cosmetics, Season 7.</td></tr>
+    <tr class="micro"><td>+343</td><td>Sat 2 Oct</td><td>v7.0.1</td><td><span class="pill p-mic">MICRO</span></td><td>Mirage balance patch and Desert spotlight.</td></tr>
+    <tr class="micro"><td>+357</td><td>Sat 16 Oct</td><td>v7.0.2</td><td><span class="pill p-mic">MICRO</span><span class="pill p-evt">EVENT</span></td><td>Anniversary countdown: a giant cake grows in the Yard all week.</td></tr>
+    <tr class="minor"><td>+364</td><td>Sat 23 Oct 2027</td><td><b>v7.1</b></td><td><span class="pill p-min">MINOR</span><span class="pill p-evt">EVENT</span></td><td><b>Year One Anniversary</b>: anniversary Boot skin, personal "Your Year" stats recap, 3 gift spins, the anniversary weapon reveal. Then <b>Fright Fall</b> (Halloween 2027, through 6 Nov): haunted Grid, ghost tiles.</td></tr>
+  </table>
+
+  <h3>World ladder (9 worlds in Year 1)</h3>
+  <table>
+    <tr><th>#</th><th>World</th><th>Hazard (repositions only)</th><th>Ships</th><th>Status rule</th></tr>
+    <tr><td>1</td><td>Classic (The Grid)</td><td>None: pure floor control</td><td>Launch</td><td>Permanent</td></tr>
+    <tr><td>2</td><td>Molten Core</td><td>Raised floors; geysers launch players upward</td><td>Launch</td><td>Active</td></tr>
+    <tr><td>3</td><td>Ice Rink</td><td>Low friction; frost delays crack warnings by 0.3 s</td><td>Launch</td><td>Retired +224 (5 Jun 2027), throwback weekends</td></tr>
+    <tr><td>4</td><td>Orbital</td><td>Gravity flip every 40 s, airlock vents</td><td>+56</td><td>Active</td></tr>
+    <tr><td>5</td><td>The Deep</td><td>Rising water slows you and lifts you off tiles</td><td>+112</td><td>Active</td></tr>
+    <tr><td>6</td><td>Neon City</td><td>Fake hologram tiles</td><td>+168</td><td>Active</td></tr>
+    <tr><td>7</td><td>Candy Collapse</td><td>Sticky and sugar tiles</td><td>+224</td><td>Active</td></tr>
+    <tr><td>8</td><td>Sky Forge</td><td>Conveyors and hammer pistons</td><td>+280</td><td>Active (lowest-played world retired)</td></tr>
+    <tr><td>9</td><td>Desert Mirage</td><td>Sinking sand and sideways sandstorms</td><td>+336</td><td>Active</td></tr>
+  </table>
+
+  <h3>Year 2 outline (Oct 2027 – Oct 2028)</h3>
+  <div class="grid g3">
+    <div class="card"><h4>Worlds 10–15</h4><p>Haunted Manor · Volcano Rail (moving trains) · Cloud Kingdom · Toy Factory · Arctic Station · Pirate Cove. One every 8 weeks.</p></div>
+    <div class="card"><h4>Weapons 21–30</h4><p>About one every 5 weeks, including a third and fourth Mythic. Each new weapon gets a Rumble showcase week.</p></div>
+    <div class="card"><h4>Systems</h4><p>Ranked Season rewards 2.0, Crew Wars, Squads Ranked, a creator map-maker preview, and a cross-mode Battle Log.</p></div>
+  </div>
+
+  <div class="note"><b>Content-banking rules:</b> (1) Always keep the next major <b>60% built</b> on its release day minus 56. (2) Keep <b>two minors banked</b> at all times. (3) A micro never needs a new system. (4) If something isn't ready, move it. Never ship untested.</div>
+</section>
+
+<!-- ============ 20 KPIs ============ -->
+<section id="kpi">
+  <div class="num">20 — KPIs &amp; GO/NO-GO</div>
+  <h2>How we know it's working.</h2>
+  <div class="grid g2">
+    <table>
+      <tr><th>Metric</th><th>Launch target</th></tr>
+      <tr><td>D1 / D7 / D30 retention</td><td>≥35% / ≥12% / ≥5%</td></tr>
+      <tr><td>Average session</td><td>≥18 min</td></tr>
+      <tr><td>Rounds per session</td><td>≥6</td></tr>
+      <tr><td>FTUE completion</td><td>≥80%</td></tr>
+      <tr><td>Payer conversion</td><td>2–4%</td></tr>
+      <tr><td>Bot share of seats (at scale)</td><td>≤30%</td></tr>
+    </table>
+    <table>
+      <tr><th>Go/no-go before launch</th><th>Required</th></tr>
+      <tr><td>Server FPS with 12 players</td><td>≥55</td></tr>
+      <tr><td>Mid-range mobile FPS</td><td>≥30</td></tr>
+      <tr><td>Data loss in 1,000 test sessions</td><td>0</td></tr>
+      <tr><td>Test purchases and receipt replay</td><td>All pass</td></tr>
+      <tr><td>Playtest #2 "would play again"</td><td>≥70%</td></tr>
+      <tr><td>Content bank</td><td>Duel, cosmetics pack 1, 2 weapons, Orbital 60%</td></tr>
+    </table>
+  </div>
+</section>
+
+<!-- ============ 21 BALANCE ============ -->
+<section id="balance">
+  <div class="num">21 — BALANCE OPERATIONS</div>
+  <h2>Keeping power fair after launch.</h2>
+  <p>Expected win rate in a 12-player round is 8.3%. <b>Win-Share Index</b> = a weapon's win rate ÷ 8.3%, measured <b>within each PWR bracket</b> so rarity isn't counted as imbalance.</p>
+  <table>
+    <tr><th>Signal</th><th>Threshold (≥5,000 rounds, 3 days)</th><th>Action</th></tr>
+    <tr><td>Weapon too strong for its PWR</td><td>Index &gt;1.15 within its bracket</td><td>Adjust base KB or utility. Never touch the rarity multipliers.</td></tr>
+    <tr><td>Weapon too weak</td><td>Index &lt;0.85</td><td>Buff utility first</td></tr>
+    <tr><td>Power gap too decisive</td><td>Players with +40 PWR win &gt;3× as often in Classic</td><td>Lower the KB cap or reduce the level bonus to +3.5%</td></tr>
+    <tr><td>Boot health</td><td>Boot L10 index &lt;0.95 vs. other ×1.36 weapons</td><td>Priority Boot buff</td></tr>
+    <tr><td>Bot win rate</td><td>&gt;30% in lobbies with 1–3 humans</td><td>Lower the difficulty mix one step</td></tr>
+    <tr><td>Self-falls</td><td>&gt;40% of deaths</td><td>Slow the collapse or lengthen crack warnings</td></tr>
+  </table>
+  <div class="fix"><b>The rule we never break:</b> windup, cooldown, range and duration are part of a weapon's identity and <b>never scale</b> with rarity or level. Only knockback grows.</div>
+</section>
+
+<!-- ============ APPENDIX: BUILD LOG ============ -->
+<section id="buildlog">
+  <div class="num">APPENDIX — BUILD LOG</div>
+  <h2>How the game was built (dev history).</h2>
+  <p class="small">Moved out of the roadmap so it stays readable. The production plan said 12 weeks; the game was finished 18–24 Oct 2026. Struck-out rows were cancelled (v0.9.7 stayed the approved base).</p>
+<h3>Builds and patches</h3>
+  <table>
+    <tr><th>Weeks</th><th>Dates</th><th>Build</th><th>Contents</th><th>Exit criteria</th></tr>
+    <tr><td>W1–2</td><td>18 Oct – 31 Oct</td><td><b>v0.5 Scale</b></td><td>12 players, 28×28 arena of 8-stud tiles, tile pooling, collapse phases, <b>shrinking edge</b>, no-climb, 90% shield, spawn ring, juggle decay, KO credit, network performance pass (built: v0.5 + v0.5.1 playtest fixes)</td><td>12 players at server FPS ≥55, client ≥30 on a phone</td></tr>
+    <tr><td>W3–4</td><td>1 Nov – 14 Nov</td><td><b>v0.6 Power</b></td><td>Rarity multipliers, merge system and Forge UI, copies and wildcards, Boot Training, PWR, 28-stud cap, Training Range, plus the Spin Vault (earned and coin spins) and starter quests (built: v0.6)</td><td>Merges are atomic; 0 lost items in 1,000 test merges</td></tr>
+    <tr><td>W5–6</td><td>15 Nov – 28 Nov</td><td><b>v0.7 Art 1</b></td><td>Final 3D for The Grid and the Yard, 9 weapons with rarity shaders, 11 bot characters, the full animation set (built: v0.7, as a procedural art pass; mesh and animation uploads can swap in)</td><td>Art meets the budgets in section 17</td></tr>
+    <tr><td>Patch</td><td>18 Oct (early)</td><td><b>v0.7.1 Polish</b></td><td>Join prompt before every match (15 s, no auto-join, bots fill seats), clear power ladder (Mythic ×1.80, KB cap 40, Void Hook yank and slam), separate windows with a dock, the "Bubbly Brawler" UI skin and a rounded world (built: v0.7.1)</td><td>Rarity ladder test passes; nobody gets pulled into a match without saying yes</td></tr>
+    <tr><td>Patch</td><td>19 Oct</td><td><b>v0.7.3 Plaza</b></td><td>Per-weapon grip, hold pose and swing clip; reworked weapon and bot models; new bot names; Plaza Yard layout; Sky Stadium arena surroundings; new HUD and dock layout (built: v0.7.3)</td><td>Every weapon reads differently when held and swung; a new player finds all stations from the plaza</td></tr>
+    <tr><td>Patch</td><td>19 Oct (late)</td><td><b>v0.7.4 Plaza fixes</b></td><td>Player attack animations fixed (Avatar Joint Upgrade opt-out + fallback); bot-only exhibition when nobody joins; matches always play to a winner; 1.5× Yard; big 4-lane Range; path/pad cleanup (built: v0.7.4)</td><td>Every weapon swing is visible on players; no repeated join prompts</td></tr>
+    <tr><td>Patch</td><td>19 Oct (night)</td><td><b>v0.7.5 Feel &amp; balance</b></td><td>Mythic/Legendary nerf (M ×1.60, cap 34, Void Hook 17); lag-compensated hits with instant local swings; re-animated Boot kick, swooshes, POW words and hit-stop; organic pines and islands; join card always reachable (built: v0.7.5)</td><td>Ladder test passes; your swing starts on click; nobody misses the join question</td></tr>
+    <tr><td>Build</td><td>19 Oct (late)</td><td><b>v0.8 Content</b> (pulled forward)</td><td>Low-poly nature kit (new islands, pines, trees, rocks, shards); Grid → Molten Core (geysers) → Ice Rink (skating, frost) rotation; supply crates with rubber-banded contents; Rumble every 3rd match; THE FOREMAN (tag, babble voice, V volume); sound pass; adaptive bots for small lobbies; Big Boot buff (built: v0.8). Deferred: raised Molten floors and the fly-over move to v0.9</td><td>Ladder test passes; bot win rate 10–30% in solo lobbies (needs live data)</td></tr>
+    <tr><td>Patch</td><td>19 Oct (late)</td><td><b>v0.8.1 Vote &amp; Hazards</b></td><td>Weapon crates removed (they undercut Spin/Merge/Forge); lobby map + mode vote (majority, random tiebreak); Ice Rink frost traps (1.4 s freeze, a hit shatters it); Molten Core sinking magma pools (Rush pops you out; geysers rarer); RUMBLE is vote-only (built: v0.8.1)</td><td>Ladder test passes; votes resolve correctly; hazards readable within one match</td></tr>
+    <tr><td>Patch</td><td>19 Oct (late)</td><td><b>v0.8.2 Map Identity</b></td><td>Per-map floor materials, rims, surroundings and lighting moods; The Grid crane drops; Molten spreading magma, stronger geysers, 95 s eruption; Ice slipperier skating (bots too), 2 s freezes, blizzard gusts with a wind arrow (built: v0.8.2)</td><td>Each map recognisable from a screenshot; each hazard causes at least one KO per match on average (needs live data)</td></tr>
+    <tr><td>Patch</td><td>19 Oct (later)</td><td><b>v0.8.3 Real Maps</b></td><td>Real lava colours; lava ocean and volcanoes; frozen lake, icebergs and glaciers; construction site; per-map sky and weather for everyone; stadium re-tint; bots no longer idle (built: v0.8.3)</td><td>No bot is still for more than 1 s unless stunned or frozen; players name each map's theme from a screenshot</td></tr>
+    <tr><td>Patch</td><td>20 Oct</td><td><b>v0.8.4 Detail &amp; Fixes</b></td><td>Surroundings reset after each match; hole vs. lava readability; Molten and Ice detail passes; bots move from match start (built: v0.8.4)</td><td>Testers can tell a hole from a lava tile at a glance; no idle bots at match start</td></tr>
+    <tr><td>Patch</td><td>20 Oct</td><td><b>v0.8.5 Fast Ice &amp; Lock-On</b></td><td>Ice skating ×1.45 speed with hard push and long glide; themed Molten/Ice stadiums; lobby hidden + map landmarks for in-match players; Locked / Free Aim modes (built: v0.8.5)</td><td>Ice feels fast; testers in a match never see the cozy lobby; lock-on use rate and hit-rate in testing</td></tr>
+    <tr><td>Build</td><td>20 Oct</td><td><b>v0.9 Retention</b> (pulled forward from W9–10)</td><td>9-step tutorial with Sparring Bot (block/parry) + 150-coin reward; 3 daily quests; 5-step weekly chain (+1 spin); Season 1 free track (30 tiers, 4 spins, locked Pass lane); global leaderboards + Hall of Fame boards; Shop (spins, coins, 2x boost) with odds/pity, PolicyService, idempotent save-before-grant receipts, kill switch; profile v3 (built: v0.9)</td><td>FTUE completion ≥80%; DevMode simulated purchases + receipt replay pass; daily quest completion rate; D1 return in Playtest #2</td></tr>
+    <tr><td>Patch</td><td>20 Oct</td><td><b>v0.9.1 Retention fixes</b></td><td>LOCKED = hit where you face / UNLOCKED = hit where you look (lock-on removed); Boot Training removed, the Boot merges like every weapon (Boot in the Common pool, +1 Boot copy from the tutorial); Range dummies stay upright; bigger Sparring Bot sign; REPLAY TUTORIAL; drawn close X (built: v0.9.1)</td><td>Testers confirm LOCKED hits follow facing; no toppled dummies; close buttons readable</td></tr>
+    <tr><td>Patch</td><td>20 Oct</td><td><b>v0.9.2 Lock &amp; Range feel</b></td><td>LOCKED (facing) is the only aim system, with no toggle; aim assist with a yellow tracking ring + V marker that snaps Shove/Block to the target; Range dummies stand up where they land, then glide home; fight action bar, real shield/guard and rush in the Range; new rush dash pose + speed trail for everyone; tutorial step 6 = aim-assist hit (built: v0.9.2)</td><td>Testers land hits without camera aiming; the ring always marks who gets hit; no dummy lies flat; shield and rush feel the same in the Range as in a match</td></tr>
+    <tr><td>Patch</td><td>20 Oct</td><td><b>v0.9.3 Dummies, ranged assist &amp; clean HUD</b></td><td>Kinematic joints + kinematic dummy flight (stand up where they land) + collapse watchdog; long-range assist (full reach, Slingshot lead, Bomb Bag lands on target) with a ground guide; Layout module: responsive scale, top-centre stack, right column, join/vote fitted, touch cluster (built: v0.9.3)</td><td>No collapsed dummy in a 10-minute Range session; ranged hits land on tracked targets; no overlapping HUD panels on PC, tablet and phone</td></tr>
+    <tr><td>Patch</td><td>20 Oct</td><td><b>v0.9.4 Dummy pose reset</b></td><td>The procedural pose layer writes dummy joint poses directly over rest (no Animator underneath) and resets them to rest when the pose ends. Exact CFrame equality is replaced by FuzzyEq (rounding made offsets accumulate and skipped the restore). Plus a 0.5 s client sweep that rests idle dummies, and a server restPose() on stand-up / home / off-yard (built: v0.9.4)</td><td>After any hit, every dummy is back in its standing pose within 1 s of landing</td></tr>
+    <tr><td>Patch</td><td>20 Oct</td><td><b>v0.9.5 Classic map</b></td><td>The normal map is now CLASSIC, the plain original arena: crane drops and the construction-site props are removed; default cozy stadium look; no hazards or modifiers. Vote card, HUD, Foreman lines and the daily quest renamed; internal id stays "Grid" (built: v0.9.5)</td><td>Players can pick a hazard-free match every round</td></tr>
+    <tr><td>Patch</td><td>20 Oct</td><td><b>v0.9.6 Centred join &amp; vote</b></td><td>The join card and the map vote form one block in the centre of the screen (card on top, vote under it, fixed gap). It scales to the free band between the top bar and the action bar, so it never covers the timer or the top pills. The card is widened to 520 to match the vote. Lobby tips are hidden while the block is up (built: v0.9.6)</td><td>No overlap between the join card, vote, top bar and action bar at any tested resolution</td></tr>
+    <tr><td>RC</td><td>20 Oct</td><td><b>v0.9.7 RC1</b> <i>(RC pulled forward)</i></td><td>RC step 1, bug fixes only: a hollow dashed aim-assist ring (the filled disc hid the target); DevMode automatic (Studio ON, live OFF); NaN-safe Range shove direction; vote throttle; remote/save audit passed (see RC_CHECKLIST.md). Store icon (512) and 2 thumbnails (1920×1080) made in front-page Roblox style. Next RC steps: content bank (hidden behind Config switches), then the trailer (built: v0.9.7)</td><td>Studio test script passes; go/no-go table (section 20) after Playtest #2</td></tr>
+    <tr style="opacity:.45;text-decoration:line-through"><td>RC</td><td>21 Oct</td><td><b>v0.9.8 Glossy Pop</b> <i>(art + UI restyle)</i></td><td>Whole-game restyle to the front-page Roblox render style, gameplay unchanged: one shared palette (Palette.luau: vivid grass, grey stone, hazard yellow/black, no lavender); Future lighting with full specular, deep blue sky, punchier grade; gloss finish (colour pop, no lavender lift) on every model; white/cool-grey tile checker with a vivid blue core; yellow/black hazard rim; glossy round canopies and floating grass cubes; "Glossy Pop" UI skin (bold dark card outlines, candy-gloss buttons, thick text outlines). Store art to be redone after approval (built: v0.9.8)</td><td>Studio look check: lobby, Classic, Molten, Ice, menus</td></tr>
+    <tr style="opacity:.45;text-decoration:line-through"><td>RC</td><td>21 Oct</td><td><b>v0.9.9 Glossy Pop 2</b> <i>(shapes rebuilt)</i></td><td>Playtest: "can't see anything except UI". The world shapes are rebuilt in the chunky glossy style: rounded-block islands with grass drips and stepped stone clusters, chunky stepped pines, block boulders/shards/spires, stepped Yard underside; much bigger bevels everywhere; blue/white stadium seats, red/white canopies, white towers; lobby rail fences (white posts, red caps, blue rails), white stalls, grey/red furnace, blue plaza ring; toy-bright weapon colours; stronger grade (built: v0.9.9)</td><td>Studio look check after pressing Play</td></tr>
+    <tr style="opacity:.45;text-decoration:line-through"><td>RC</td><td>21 Oct</td><td><b>v0.9.9b hotfix</b></td><td>Scripts can't write <code>Lighting.Technology</code>: the error stopped server start-up (sky only). Removed (Future set in the project file); every start-up step now runs protected (built: v0.9.9b)</td><td>Done</td></tr>
+    <tr style="opacity:.45;text-decoration:line-through"><td>RC</td><td>21 Oct</td><td><b>v0.10 Sky Toy</b> <i>(full colour rework + bug check)</i></td><td>Request: "full rework like the design, most colours changed, check for errors and bugs". Saturated cyan sky, lower exposure/bloom, stronger grade; new 3D puffy cloud clusters (<code>Art.Cloud</code>) under/around the arena and lobby (CLASSIC only); vivid green block checker floor with a glossy white centre pad; yellow/white stands, sky-blue canopies; lime grass, warm toy stone, orange-brown dirt; blue/pink/purple signs; yellow toy UI buttons, near-black outlines. Headless Lune smoke test of the real server + client scripts (all maps/modes, input + 138 UI buttons): 0 game errors; LoadCharacter → LoadCharacterAsync (built: v0.10)</td><td>Studio look check after pressing Play; then redo store art</td></tr>
+    <tr><td>RC</td><td>21 Oct</td><td><b>v0.9.10 Detail &amp; Colour Variety</b></td><td>User: "approve v0.9.7, anything after is cancelled; add more detail and avoid using the same colour many times". Restored the v0.9.7 source (plus 2 safety fixes). Stands: 7-colour canopies, one colour per segment with no matching neighbours, cream stripes and scallops, two pennants, seat backs, front railing, 4 wood tones, hanging vines and gem crystals under the stands; red/teal scoreboard roofs. 6 pine species, 7 round-tree leaf sets, varied bark. Lobby lamps in rotating colours with flower baskets, path pebbles, wildflowers, 5 mushroom caps. <code>Art.Vary</code> gives wood, stone, grass and dirt related tones per object (built: v0.9.10)</td><td>Studio look check after pressing Play</td></tr>
+    <tr><td>RC</td><td>22 Oct</td><td><b>v0.9.11 Weapon FX &amp; Final Polish</b></td><td>Playtest: "weapons missing animation, like the Void Hook and the Magnet". Magnet: tip charge, red/blue field waves out plus sparks streaming in, and a crackling field beam that clamps the target on a hit. Void Hook: core charge, hook head flies out on a whipping void rope, latches onto the target and follows it through the reel, void burst on the slam, reels back empty on a miss (the swing cuts the slam). HookWhip clip gets reel + slam keys timed to SlamDelay; MagnetYank gets brace keys. Range now shows the magnet/hook effects, the Slingshot pellet, the Bomb Bag lob (hits on arrival) and the Pan ring. Per-weapon swing pitch. Smoke test covers every weapon's cast effects (built: v0.9.11)</td><td>Studio check: each weapon in the Range and the arena</td></tr>
+    <tr><td>RC</td><td>22 Oct</td><td><b>v0.9.12 Clarity &amp; Balance</b></td><td>Playtest: "change the tutorial line colour; the Foreman says too much; lava holes look the same as the tiles; balance the game; bots should go for the player". Tutorial beam is gold→orange with a real gold arrow (the emoji rendered as a blue box). Foreman: no KO / parry / geyser / slam / freeze banners, shorter lines, 5 s throttle for minor lines, smaller banner (620×52, 1.3–2.2 s), orange "warn" style for gust / shrink / eruption, no "READY" on the ability bar. Molten: lighter basalt tiles, near-black drop, glowing orange hole outlines (neon lip + edge line, merge as holes join, cleared on reset); Ice gets blue outlines, CLASSIC none. Bots: HumanFocus 0.5 (a player counts as half as far away), 2 hunters max per player in small lobbies (Easy still 1), anti-dogpile slots go to the nearest bots, 0.7 s breather, swing rate vs humans ×0.85. The targeting model went from 0.7 to 1.8 hunters on the player (about 2× an average bot). Weapons: Gloves combo 16→15, Big Boot 12 KB / 2.5 s, Pan 4.2 s, Magnet 4.5 s; ladder test green. Smoke balance telemetry + mid-round scene dump (built: v0.9.12)</td><td>Studio check: solo Molten and Classic rounds; bot win rate 10–30%; holes read at a glance</td></tr>
+    <tr><td>RC</td><td>22 Oct</td><td><b>v0.9.13 Detail, Glow &amp; Economy</b></td><td>Playtest: "balance everything, add more detail to the models and everything, the light from a few lobby models is very high". Glow: ForceField gate portals, solid spawn rim, Art.TameGlow governor on the lobby (near-white neon toned, big neon faces see-through, lights capped at 0.7 / 18), lamp 16/0.55, Forge 12/0.8, Hall of Fame 9/0.55, softer weapon-display lights, bloom 0.3/20/1.9. Lobby neon 1,311 → 573 st², light brightness 21.5 → 9.1. Detail: every weapon (silhouettes unchanged), bot outfits, Vault, Forge, gates, fountain, lamps, benches. Economy (tools/economy_sim.py): spin at L2, L3 and every 5 levels, +1 spin for all 3 dailies, coin spin 1,500 ×3/week. A new player opens 5 spins on day 1 (was 1), 21 in week 1 (was 9) and 62 by day 30 (was 21) (built: v0.9.13)</td><td>Studio check: lobby glare at noon; spins feel earned, not handed out</td></tr>
+    <tr><td>RC</td><td>22 Oct</td><td><b>v0.9.14 Hand-Made Pass</b></td><td>Playtest: "the models and UI feel AI-generated; make the spectators bots". UI: Toy Box skin (cream cards with 3 px ink outlines, chunky flat buttons with a dark outline and a solid bottom lip, LuckiestGuy titles, solid ink text outlines), 23 drawn icons replace every emoji, all hint/toast/tutorial text cut to a few words. Models: purposeless v0.9.13 details removed from weapons, bots and lobby props; one-canopy trees and one-shape hedges; one brand palette (orange/teal/gold on cream, wood and ink) for the stands, lamps, bunting and balloons; greens-only trees. Crowd: every fan is a mini toy-brawler bot in one of the 11 bot styles, cheering/waving (built: v0.9.14)</td><td>Studio check: icons crisp, no clipped button labels, crowd FPS</td></tr>
+    <tr><td>RC</td><td>22 Oct</td><td><b>v0.9.15 Districts &amp; Toy Kit</b></td><td>Playtest: "the instructions and leaderboard are merged; remove the orange thing; rework all model designs and the organisation". Lobby reorganised into 4 districts around the plaza: PLAY (front, orange: portals and Armory), TRAIN (west, blue: Forge and Range), SHOP (east, gold: Spin Vault and a new Shop kiosk), HALL (back, teal: spawn, How To Play, a new Quest board, the Hall of Fame boards at x +20/+36/+52 and the Ascended podium). Each district has an arch with a drawn icon and an arm on the plaza signpost. The orange title board is removed and the back fence closed; the arena title plate is now a dark jumbotron. One model kit (cream stone, dark iron, district colour) for every lobby structure; Toy Box signage; a shared Icons module. Weapons get one palette each with chunky clean silhouettes (red Gloves, one-taper Bat, bomb-only Bomb Bag); the Void Hook is unchanged. Bots keep one glow (face + chest emblem). Vines removed under the stands (built: v0.9.15)</td><td>Studio check: sign readability, F prompts, tutorial arrows</td></tr>
+    <tr><td>RC</td><td>24 Oct</td><td><b>v0.9.16 Signs, Swings &amp; Balance</b></td><td>Playtest: "the board text should face the spawn, not the other side; rework every weapon with more detailed animation and balance them; this pathway". Arches, portal beams, signpost arms and the QUESTS sign get text on both faces, so they read from the spawn and plaza. Paths: pebbles removed, one clean border under every path, guide lines stop before junctions, round hubs where paths branch. The Launch Gate gets one straight path behind all three portals and both Armory rows, and the diagonals past the RUMBLE / DUEL pillars are gone. Animation: a Root joint for whole-body weight (lunges, hops, stomp landing, full-body Pan spin, reel and slam). Per-key easing (snap / accel / linear / smooth). Each clip goes anticipation → load → snap strike → overshoot → follow-through → settle. Idle breathing for the Boot, Big Boot, Slingshot and Magnet. The strike frame still equals the windup, and the hook slam stays at +0.45 s. Balance (new tools/balance_sim.py: pressure per 10 s with each hit valued at KB^1.6, in rarity bands): Gloves jab 5.5; Big Boot 13 KB, lift 14, windup 0.26 s, cooldown 2.3 s; Slingshot 13 KB, cooldown 2.2 s; Bat cooldown 3.7 s; Pan cooldown 5.2 s; Magnet cooldown 4 s; Bomb Bag cooldown 6.5 s; Void Hook windup 0.36 s, cone 0.55, cooldown 5.8 s. The ladder is unchanged. v0.9.16b: the TRAIN junction moved off the Range wall (x −48 → −41, straight Range branch), the side arches moved in to ±30, two lamp posts moved off the paths, and the preview renderer now draws sign text (built: v0.9.16b)</td><td>Studio check: signs from the spawn, each swing in the Range, one match per weapon</td></tr>
+    <tr><td>RC</td><td>24 Oct</td><td><b>v0.9.17 Ice, Boxes &amp; Descriptions</b></td><td>Playtest: "the ice map is too slippery; in Rumble the random weapon boxes are not spawning; give descriptions for weapons and anything else". <b>Ice</b>: skating ×1.45 → ×1.25, push 46 → 72 (bots 54 → 80), glide 0.35 → 0.75 (about half the slide). <b>RUMBLE weapon boxes</b> (Rumble only, Classic stays box-free): new RumbleBoxService. A toy-kit box (orange, ink frame, "?" on every side, gold beam) falls onto a healthy tile near the middle 6 s after GO, then every 10 s, at most 3 at once. Walk into it for a random different weapon at L5 for this round; it vanishes after 22 s or with its tile. Bots grab nearby boxes when no rival is in reach. Land, grab and poof effects; the Foreman calls the first one. A <b>RUMBLE WEAPON</b> card (top stack) shows the name, rarity, level, tag and description at the start and after each grab. <b>Descriptions</b> (new shared Descriptions.luau): every weapon has a tag, description and tip. Weapons window cards show the description plus reach · windup · cooldown; new spin unlocks show the description; shop cards explain each product; the Spin Vault notes how much harder each rarity hits; hovering SHOVE / RUSH / GUARD explains the move; the countdown hint says the map or Rumble rule; the equipped pill shows the tag; Armory plates show rarity · tag; Vault, Shop, Forge, Range and Armory plates got a second line (built: v0.9.17)</td><td>Studio check: one Rumble match (boxes drop, grab works, card shows), Ice turning feel, Weapons window layout</td></tr>
+    <tr><td>RC</td><td>24 Oct</td><td><b>v0.9.18 Bold Weapons, Arches &amp; Push-Pull</b></td><td>Playtest: "rework every weapon model; from the hall you should see the district name, from the district you should see HALL; the magnet is useless, fix it; balance everything". <b>Models</b>: a first "Toy Kit 2.0" pass was rejected ("i do not like the weapon model"); the player picked a big, bold Roblox style. Held weapons are 1.2–1.3× bigger, made of a few large rounded parts in bright colour blocks (main + white + ink) with thick ink bands at the seams: red high-top Boot with a white bumper and yellow stripe, blue Big Boot stomper on a yellow platform sole, round red glove, chunky orange-wood Y slingshot with red bands, oversized slugger, red-handled iron pan with an ink rim, red/blue horseshoe magnet (red pulls, blue pushes), glossy cartoon bomb; the Void Hook keeps its approved look at 1.15×. Boots stay planted. Merge stages unchanged; 910 parts for the 18 sheet models (Toy Kit 2.0 was 1,090). New SMOKE_WEAPONS dump + tools/weapon_sheet.py. <b>Arches</b>: the plaza side of PLAY / TRAIN / SHOP shows the district name; the district side shows HALL; the HALL arch shows PLAZA toward the spawn. <b>Magnet push-pull</b>: click 1 pulls (windup 0.22 s, 18 st), click 2 within 2 s fires a REPEL (windup 0.1 s, 9 st cone, cone 0.3, up to 3 targets, base 13.5 KB), one 4.8 s cooldown per cycle; shared Weapons.FollowUp state machine on server, Range and client; HUD shows REPEL!; MagnetRepel clip; red pull / blue repel effects; bots follow up. <b>Balance</b>: balance_sim values a pull as setup only (0.3 of a hit), so the old Magnet "1.23" was really far lower; now 1.26 (Epic band 1.12–1.27). All nine in band, ladder climbs (E best hit 18.9 / 23.8) (built: v0.9.18)</td><td>Studio check: each weapon held in the Range, arches both ways, Magnet pull → REPEL in the Range and a match</td></tr>
+    <tr><td>RC</td><td>24 Oct</td><td><b>v0.9.19 Smooth Weapons &amp; Repel Fix</b></td><td>Playtest: "no i want them smooth; when you pull someone they're too close and the repel doesn't work on them; keep the vote there even after they vote, and give it a close button". <b>Models</b>: same bold designs, rebuilt only from round primitives (balls, sphere-meshed ellipsoids, cylinders, capsules, ball-jointed tube bends), with no boxes, wedges or beams. Boots are a round sneaker shape (rounded sole, white or steel toe cap, padded collar); the Void Hook crook, its ring and the L10 halo are smooth tubes. 566 parts for the 18 sheet models (was 910). <b>Repel</b>: the pulled rival is remembered and always hit within reach + 4 st (no cone or height check); anything within 5 st is hit at any angle; close targets are pushed along the aim; the pull stops 4.5 st in front (was 3); early repel clicks are buffered; RepelDelay 0.35 → 0.3 s; Range dummies still flying from the pull can be repelled. <b>Vote</b>: the panel stays up after voting, shows the result until the match starts, and has a red X (1/2/3 reopens it). <b>Tools</b>: render.py RENDER_SMOOTH (Gouraud) for weapon sheets (built: v0.9.19)</td><td>Studio check: ellipsoid parts at L1/L10, Magnet pull → REPEL point-blank, vote X / reopen</td></tr>
+    <tr><td>RC</td><td>24 Oct</td><td><b>v0.9.20 Crafted Weapons, Squeaky Hammer &amp; Mythic Magnet</b></td><td>Playtest: "still not satisfied with the weapon models, rework them your way; check for bugs, balance the game; should the Magnet be Mythic (two powers); add one more weapon if needed; check the RC". <b>Models</b>: every weapon rebuilt as the real object in toy proportions with real materials (canvas, leather, rubber, wood, metal keep their material; only plain plastic is flattened) and only real details: red canvas high-top (white rubber toe and midsole, foxing stripe, laces through eyelets, ankle patch), wheat work boot (lug sole, steel toe, padded collar, red laces on speed hooks), boxing glove (knuckle roll, thumb, laced cuff, logo patch), carved wood slingshot (leather wrap, tapered fork, yellow tubes, pouch + stone), lathe-turned ash bat (grip tape, brand oval), cast-iron skillet (flared walls, rolled rim, riveted neck, silicone sleeve with hang hole), electromagnet (square horseshoe, copper coil, silver poles), riveted iron bomb (bolted cap, rope fuse); Void Hook unchanged. <b>Magnet → Mythic</b> (cycle 6.0 s, repel 14). <b>New Epic: Squeaky Hammer</b> (slam kind: smash spot ahead, pops up to 4, cracks the tile; overhead two-handed HammerSmash clip; ground-circle guide; bots block when standing on the spot). <b>Balance</b>: Bomb Bag cd 6.5 → 6.3, Void Hook cd 5.8 → 5.5; all ten weapons in their rarity bands; ladder E 21.0 / 26.4. Bot pools: Medium gets the Hammer instead of the Magnet. (built: v0.9.20)</td><td>Studio check: weapon looks in hand at L1/L10, Hammer smash + crack timing, Magnet in the Mythic roll</td></tr>
+    <tr><td>RC</td><td>24 Oct</td><td><b>v0.9.21 Free Spin Timer &amp; Rarity Order (RC2 base)</b></td><td>Playtest: "add a system where you can spin for a weapon every set period; arrange the weapons in rarity order, the magnet is placed wrong; check the RC". <b>Free spin</b>: one every 6 h (Config.Spins.FreeSpinEvery), saved as FreeSpinAt, server action FreeSpin (same odds and pity), the Vault gets a full-width FREE SPIN! READY bar or a countdown, and the dock badge counts it. <b>Order</b>: Weapons.List runs Common → Mythic (the Magnet moved after the Bomb Bag), so every menu, the Armory, the Dev grid and the bot pool lists follow. <b>RC</b>: v0.9.21 becomes the RC2 base with a feature freeze; launch blockers (Studio script, Developer Product Ids, private test place, paid-random policy, store art refresh, real playtests) are listed in RC_CHECKLIST.md (built: v0.9.21)</td><td>Studio check: claim the free spin, the countdown survives a rejoin, menus in rarity order</td></tr>
+    <tr><td>RC</td><td>24 Oct</td><td><b>v0.9.22 Game Passes &amp; Skip Timer (RC2 base)</b></td><td>Playtest: "add a few game passes like merge all, spin time skip for money". <b>Passes</b> (Config.Shop.Passes, one-time): AUTO MERGE 199 (MERGE EVERYTHING button + auto-merge after spins, switchable, never spends wildcards), FAST FREE SPINS 249 (3 h timer; a running timer is cut to 3 h on purchase), 2x COINS FOREVER 299 (×2 coins and cap, ×3 with the boost), VIP 149 (gold head tag + chat prefix). <b>SKIP TIMER</b> developer product 25 R$, 3/day, hidden for restricted accounts; SKIP button next to the Vault countdown. Shop gets ITEMS / PASSES tabs. Ownership is mirrored as Pass_&lt;Key&gt; attributes; DevMode simulates passes with Id 0. The RC freeze restarts at v0.9.22 (built: v0.9.22)</td><td>Studio check: simulate each pass, MERGE EVERYTHING, auto-merge on/off, skip button, VIP tag</td></tr>
+    <tr><td>RC</td><td>24 Oct</td><td><b>v0.9.23 Hourly Coin Spin &amp; Final Balance (RC2)</b></td><td>Playtest: "no weekly for spins and no free spin; players can spin with coins every 1 hour; last bug fixes and balancing; tell me what to do step by step". Free spin removed; coin spin 1,000 coins (was 1,500 ×3/week), once an hour (Config.Spins.CoinSpinEvery), no weekly cap, saved as CoinSpinAt. FAST COIN SPINS pass R$149 (30 min) and SKIP TIMER now target the coin spin. Economy sim: week 1 28.6 spins, day 30 75.6. Balance sim 10/10 in band. Small fixes (tutorial tip text, test mock). RC_CHECKLIST.md opens with a 16-step launch guide (built: v0.9.23)</td><td>Studio check: coin spin countdown, FAST COIN SPINS, SKIP, passes</td></tr>
+    <tr><td>RC</td><td>24 Oct</td><td><b>v0.9.23b Store IDs</b></td><td>All 7 developer products (Spin1 3721876276, Spin5 3721876454, Spin12 3721876610, Coins500 3721877347, Coins2500 3721877577, Boost2x 3721877938, SkipTimer 3721878204) and 4 game passes (AutoMerge 2053541441, FastSpins 2052833405, Coins2x 2052839434, VIP 2054021437) are live in Config.Shop. Gold-coin badge art for all 11 (store/products). Purchase prompts pcall'd. Smoke checks a real pass purchase and a real receipt (granted once) (built: v0.9.23b)</td><td>Publish over the game, live purchase check</td></tr>
+    <tr><td>RC</td><td>24 Oct</td><td><b>v0.9.23c One-Page Shop</b></td><td>Shop tabs removed: one scrolling page with GAME PASSES first (2 across) and ITEMS below (4 across), gold scroll bar, bottom hint "Scroll down for ITEMS". Forge MERGE EVERYTHING opens the Shop at the passes. luau-lsp clean, smoke PASS (built: v0.9.23c)</td><td>Publish over the game, live purchase check</td></tr>
+    <tr><td>LAUNCH</td><td>24 Oct</td><td><b>v1.0 Launch</b></td><td>Centred icon + word on every sign, arch and plate; one-line Sparring Bot hint naming BLOCK. Balance: levels multiply the rarity bonus (+3% of it per level; L10 Common x1.27 … Mythic x2.03, capped 34) so every rarity beats the one below at L1 and L10; Slingshot cd 2.1, Bomb Bag cd 6.5. Speed, round timing and map hazards checked and kept. Fixes: Season preview (S1P) switches to S1 by itself at the season start (now launch day, 24 Oct 2026) and stops adding XP after the end; stale PASSES-tab text; "×" glyph. luau-lsp clean, all tests + smoke PASS (built: v1.0)</td><td>Publish, live purchase check, store page, friends playtest, go public</td></tr>
+    <tr><td>LAUNCH</td><td>24 Oct</td><td><b>v1.0 Launch: fit pass + release date</b></td><td>Worn boots sized to the wearer: shorter shafts, shaft just wider than the shin, sole on the ground, top at the knee (Boot) / mid-thigh (Big Boot), capped on short legs (was: Big Boot up to the chest). Gloves 20% smaller, Bomb 16% smaller (they covered the head). Other weapons checked in hold pose: unchanged. Bots checked: no tuning needed (combat unchanged). Season tab: free track only, bigger reward cards, NEXT marker, auto-scroll, dates shown; the locked PASS preview lane was removed (Season Pass = concept, section 19). Kept the version name v1.0. Leaderboards: players never see the developer DataStore note; the live game shows ALL SERVERS from day one. FREE SPIN button under Help Tips: favorite the game = +1 spin, once per player, then the button is gone for good (likes are only asked for: not detectable, and rewards for a thumbs-up are against Roblox rules). INVITE FRIENDS on the Quests page. Compliance: coin packs, the 2x Coins boost and the FAST COIN SPINS / 2x COINS passes feed the random coin spin, so they are hidden + blocked where ArePaidRandomItemsRestricted is true (like paid spins). <b>Release moved to today, Sat 24 Oct 2026</b>: Season 1 runs 24 Oct – 18 Dec 2026 (starts on launch day, no preview), the whole roadmap moved 11 weeks earlier. luau-lsp clean, all tests + smoke PASS (built: v1.0)</td><td>Publish v1.0 today, live purchase check, store page, friends playtest, go public</td></tr>
+
+    <tr><td>Patch</td><td>18 Oct (early)</td><td><b>v0.7.2 Cozy</b></td><td>Reference-style rework: soft low-poly Yard and Grid, flat toon finish on weapons and bots, Cozy Cards UI (left stack, hint pill), guide paths and pads, longer intermission with late join (built: v0.7.2)</td><td>A new player reaches the Vault, Forge and Range by following the guide lines</td></tr>
+    <tr><td>W7–8</td><td>done 19 Oct (planned 29 Nov – 12 Dec)</td><td><b>v0.8 Content</b></td><td>Molten Core and Ice Rink final art and hazards, crates, Rumble, bot AI (3 difficulties, behaviour for each weapon, anti-swarm), sound pass, Foreman voice lines</td><td>Bot win rate 10–30% in solo lobbies</td></tr>
+    <tr><td>W9–10</td><td>done 20 Oct (planned 13 – 26 Dec)</td><td><b>v0.9 Retention</b></td><td>FTUE, starter quests, weekly chain, Season 1 track, leaderboards, spins and pity UI, PolicyService, products. <b>Playtest #2</b>: friends playtest in launch week (RC steps 14–15).</td><td>FTUE completion ≥80%, test purchases pass</td></tr>
+    <tr><td>W11–12</td><td>done 20–24 Oct (planned 27 Dec – 8 Jan)</td><td><b>RC</b></td><td>Bug fixes only, trailer, icon and thumbnails. Content bank check: Duel, cosmetics pack 1, Water Hose and Grappling Hook built; Orbital 60% built.</td><td>Go/no-go (section 20)</td></tr>
+    <tr><td>PATCH</td><td>25 Oct</td><td><b>v1.0 patch: mobile, faster rounds, feedback</b></td><td><b>Mobile:</b> phones/tablets get SHOVE / RUSH / BLOCK wrapped around Roblox's jump button (Shove used to cover it), sized for small and large screens, with cooldown seconds on the buttons; shown only while you can fight; the action bar shows just the weapon card on touch; tutorial says TAP / HOLD BLOCK. <b>Faster flow:</b> join window 12 s (was 20; closes when everyone answered + voted, or 4 s after everyone answered), lobby countdown 6 s (3 s when everyone is in; was 15), results 7 s (was 12), no-join notice 3 s (was 5). <b>PLAY NOW</b> button during a bots-only match: ends it and seats you in the next match (a new player used to wait up to 3 min). <b>Fixes:</b> no more "Finish your round first!" after a win (spins/equip work in Results); old weapon hold pose no longer sticks after equipping (joint layer is reset every frame; a swing of the old weapon stops on swap); Slingshot held the right way round (pouch faces you, fork at the target); Leaders tab shows 4+ player wins; Forge note says +3%. <b>FEEDBACK</b> tile (8th dock slot): BUG / IDEA / TOO HARD / LOVE IT + text, Roblox-filtered, 1 per minute, 5 per server, saved to DataStore "Feedback" (Creator Hub &gt; Data Stores Manager); the owner gets an in-game INBOX. Version stays v1.0.</td><td>Smoke 49/49, progression + retention tests pass, HUD layout sim 0 overlaps (incl. jump button)</td></tr>
+    <tr><td>PATCH</td><td>25 Oct</td><td><b>v1.0 patch 2: AFK mode, prize wheel, phone stick</b></td><td><b>AFK MODE</b> (AFK pill next to TIPS in the dock): you sit out matches and every 2 min roll one reward: 80% coins (15–25), 15% wildcard (Common 55% / Uncommon 30% / Rare 12% / Epic 3%), 5% spin. That's about 480 coins, 4.5 wildcards and 1.5 spins an hour, below active play, so the hourly coin spin and the shop still matter. The join pill shows the timer and session haul with STOP AFK; joining, PLAY NOW or the Range ends AFK; AFK players don't hold the join window open; the 20-min idle kick is answered only while AFK is on. <b>Spin Vault = giant prize wheel</b>: 12 rarity-coloured slices on a dark marquee rim with bulbs, gold dividers and hub, red A-frame stand and ticker, SPIN button post; it turns slowly on every client and whirls when you spin. <b>Phones</b>: the dock becomes a 4×2 grid at the top-left and the weapon/equipped bar sits between the stick and the buttons, so Roblox's move stick (bottom-left) is never covered. FEEDBACK inbox: owner-only on live servers (in Studio everyone counts as the owner).</td><td>Smoke 49/49 (UI fuzz presses AFK + FEEDBACK), layout sim 0 overlaps incl. the stick + jump button</td></tr>
+<tr><td>PATCH</td><td>25 Oct</td><td><b>v1.0 patch 3: responsive UI</b></td><td><b>AFK MODE</b> (AFK pill next to TIPS in the dock): you sit out matches and every 2 min roll one reward: 80% coins (15–25), 15% wildcard (Common 55% / Uncommon 30% / Rare 12% / Epic 3%), 5% spin. That's about 480 coins, 4.5 wildcards and 1.5 spins an hour, below active play, so the hourly coin spin and the shop still matter. The join pill shows the timer and session haul with STOP AFK; joining, PLAY NOW or the Range ends AFK; AFK players don't hold the join window open; the 20-min idle kick is answered only while AFK is on. <b>Spin Vault = giant prize wheel</b>: 12 rarity-coloured slices on a dark marquee rim with bulbs, gold dividers and hub, red A-frame stand and ticker, SPIN button post; it turns slowly on every client and whirls when you spin. <b>Phones</b>: the dock becomes a 4×2 grid at the top-left and the weapon/equipped bar sits between the stick and the buttons, so Roblox's move stick (bottom-left) is never covered. FEEDBACK inbox: owner-only on live servers (in Studio everyone counts as the owner).</td><td>One UI scale from screen size (phones 0.55 min, big monitors up to 1.3×); menu windows grow on big screens; wind gauge scaled; touch dock steps aside for the join card; join card avoids side panels and touch buttons. Checked on 12 screen sizes, 0 overlaps.</td></tr>
+<tr><td>PATCH</td><td>25 Oct</td><td><b>v1.0 patch 4: touch detection + AFK anti-kick</b></td><td><b>AFK MODE</b> (AFK pill next to TIPS in the dock): you sit out matches and every 2 min roll one reward: 80% coins (15–25), 15% wildcard (Common 55% / Uncommon 30% / Rare 12% / Epic 3%), 5% spin. That's about 480 coins, 4.5 wildcards and 1.5 spins an hour, below active play, so the hourly coin spin and the shop still matter. The join pill shows the timer and session haul with STOP AFK; joining, PLAY NOW or the Range ends AFK; AFK players don't hold the join window open; the 20-min idle kick is answered only while AFK is on. <b>Spin Vault = giant prize wheel</b>: 12 rarity-coloured slices on a dark marquee rim with bulbs, gold dividers and hub, red A-frame stand and ticker, SPIN button post; it turns slowly on every client and whirls when you spin. <b>Phones</b>: the dock becomes a 4×2 grid at the top-left and the weapon/equipped bar sits between the stick and the buttons, so Roblox's move stick (bottom-left) is never covered. FEEDBACK inbox: owner-only on live servers (in Studio everyone counts as the owner).</td><td>Touch mode now uses Roblox PreferredInput + real taps (phones/tablets that also report a keyboard, and the Studio emulator, used to get the PC layout: no SHOVE/RUSH/BLOCK, tall dock over the stick). Switches live. PC dock falls back to the top-left grid on short screens. Landscape locked. AFK: VirtualUser is blocked for games, so at 18 idle min the player is saved and moved to a fresh server with AFK still on.</td></tr>
+<tr><td>PATCH</td><td>25 Oct</td><td><b>v1.0 patch 5: custom mobile controls + AFK card</b></td><td><b>AFK MODE</b> (AFK pill next to TIPS in the dock): you sit out matches and every 2 min roll one reward: 80% coins (15–25), 15% wildcard (Common 55% / Uncommon 30% / Rare 12% / Epic 3%), 5% spin. That's about 480 coins, 4.5 wildcards and 1.5 spins an hour, below active play, so the hourly coin spin and the shop still matter. The join pill shows the timer and session haul with STOP AFK; joining, PLAY NOW or the Range ends AFK; AFK players don't hold the join window open; the 20-min idle kick is answered only while AFK is on. <b>Spin Vault = giant prize wheel</b>: 12 rarity-coloured slices on a dark marquee rim with bulbs, gold dividers and hub, red A-frame stand and ticker, SPIN button post; it turns slowly on every client and whirls when you spin. <b>Phones</b>: the dock becomes a 4×2 grid at the top-left and the weapon/equipped bar sits between the stick and the buttons, so Roblox's move stick (bottom-left) is never covered. FEEDBACK inbox: owner-only on live servers (in Studio everyone counts as the owner).</td><td>Own joystick (dynamic, orange knob, rest ring bottom-left), JUMP button and a redesigned SHOVE/RUSH/BLOCK arc (fire on press, squish, shrinking cooldown disk, ready pop); Roblox stick/jump off in touch mode; sizes scale phone to tablet (k 1 to 1.6). AFK now stays on in the Training Range; big gold AFK card (countdown bar, haul, STOP), pulsing gold screen edge, reward pop + sound, gold AFK tag over the head.</td></tr>
+<tr><td>PATCH</td><td>25 Oct</td><td><b>v1.0 patch 6: phone fit + new-player start</b></td><td><b>AFK MODE</b> (AFK pill next to TIPS in the dock): you sit out matches and every 2 min roll one reward: 80% coins (15–25), 15% wildcard (Common 55% / Uncommon 30% / Rare 12% / Epic 3%), 5% spin. That's about 480 coins, 4.5 wildcards and 1.5 spins an hour, below active play, so the hourly coin spin and the shop still matter. The join pill shows the timer and session haul with STOP AFK; joining, PLAY NOW or the Range ends AFK; AFK players don't hold the join window open; the 20-min idle kick is answered only while AFK is on. <b>Spin Vault = giant prize wheel</b>: 12 rarity-coloured slices on a dark marquee rim with bulbs, gold dividers and hub, red A-frame stand and ticker, SPIN button post; it turns slowly on every client and whirls when you spin. <b>Phones</b>: the dock becomes a 4×2 grid at the top-left and the weapon/equipped bar sits between the stick and the buttons, so Roblox's move stick (bottom-left) is never covered. FEEDBACK inbox: owner-only on live servers (in Studio everyone counts as the owner).</td><td>Touch dock shrinks to end above the joystick on short screens (min 0.36). Fight buttons start hidden (were showing in the lobby). New players (tutorial steps 1-6 not done) get a small "Match in Xs · train first, or JOIN" pill instead of the big join card + map vote over the tutorial.</td></tr>
+<tr><td>PATCH</td><td>25 Oct</td><td><b>v1.0 patch 7: leaderboard save fix</b></td><td><b>AFK MODE</b> (AFK pill next to TIPS in the dock): you sit out matches and every 2 min roll one reward: 80% coins (15–25), 15% wildcard (Common 55% / Uncommon 30% / Rare 12% / Epic 3%), 5% spin. That's about 480 coins, 4.5 wildcards and 1.5 spins an hour, below active play, so the hourly coin spin and the shop still matter. The join pill shows the timer and session haul with STOP AFK; joining, PLAY NOW or the Range ends AFK; AFK players don't hold the join window open; the 20-min idle kick is answered only while AFK is on. <b>Spin Vault = giant prize wheel</b>: 12 rarity-coloured slices on a dark marquee rim with bulbs, gold dividers and hub, red A-frame stand and ticker, SPIN button post; it turns slowly on every client and whirls when you spin. <b>Phones</b>: the dock becomes a 4×2 grid at the top-left and the weapon/equipped bar sits between the stick and the buttons, so Roblox's move stick (bottom-left) is never covered. FEEDBACK inbox: owner-only on live servers (in Studio everyone counts as the owner).</td><td>Profiles save (and post to the leaderboards) right after every match. Saves + leaderboard posts are counted and the server waits for them on shutdown, so a visitor alone in a server who leaves is no longer lost from the boards.</td></tr>
+<tr><td>PATCH</td><td>25 Oct</td><td><b>v1.0 patch 8: visitor log</b></td><td><b>Owner-only VISITORS tab</b> in FEEDBACK &gt; INBOX (next to MESSAGES). Every server logs each visit when the player leaves (DataStore "CrumbleVisitors", newest 150 kept + all-time totals): name, device (phone/tablet/PC/console), NEW or returning, time played, level, and the furthest stage reached: LOADING (quit before the game loaded) &gt; LOBBY &gt; RANGE &gt; SHOVED (did first tutorial shoves this visit) &gt; MATCH &gt; FINISHED. The header shows total visits, new players, how long people stayed (&lt;30s / 30s–2m / 2–5m / 5m+), how far they got, and "Most stop at: X". The owner's own visits are tagged YOU. Studio test players aren't logged.</td><td>No Creator Hub/Analytics needed to see why visitors leave early. Next step depends on the data: many LOADING quits = add a loading screen; many LOBBY quits = get new players into action faster.</td></tr>
+<tr><td>PATCH</td><td>25 Oct</td><td><b>v1.0 patch 9: error-report fixes</b></td><td>From the live Errors report: (1) "DataStore request was added to queue": saves for the same player now wait at least 6.5 s between writes, and visitor-log entries are batched (one write per server every 7 s). (2) "Teleport failed (GameEnded / Unauthorized)": the AFK anti-kick hop now retries once after 8 s; if it fails again the player gets a short message.</td><td>Removes the warning spam; AFK hops survive a server shutting down for an update.</td></tr>
+<tr><td>UPDATE</td><td>26 Oct</td><td><b>v1.0.1: first person, per-player bots, working portals</b></td><td><b>First person</b>: zoom all the way in (scroll / pinch) for Roblox first-person view; the over-the-shoulder offset fades out as you zoom in, your arms + weapon stay visible, and the mouse is freed while a menu, the join question or results are open. <b>Bots harder + matched to each player</b>: every tier is tougher (faster reactions, more aggression, blocks, parries, rushes; shorter breather) and a new top tier <b>PRO</b> (0.10 s reactions, 70% block, 50% parry, up to 3 Legendary/Mythic bots, weapon level +1). Each match deals the bots out between the real players; each bot hunts "its" player first at THAT player's tier (from rounds, win rate, KOs per round and level; fewer than 3 rounds = Easy), and tough bots leave beginners alone. Session form: win = +1 tier, a bot wins = −1 (range −2..+2); replaces the lobby-wide shift. <b>Lobby portals work</b>: walk through CLASSIC or RUMBLE = join the next match + vote that mode (during a bots-only match it acts like PLAY NOW); DUEL says "coming soon".</td><td>More to do in the lobby, fairer fights for beginners, a real challenge for strong players.</td></tr>
+  </table>
+</section>
+
+<footer>
+  CRUMBLE! · Game Design Document v6.8 · Launch Edition · launch day Sat 24 Oct 2026 · build v1.0.<br>
+  Roadmap and Season Pass concept: section 19. Dev history: Build log appendix.
+</footer>
+
+</div>
+</body>
+</html>
